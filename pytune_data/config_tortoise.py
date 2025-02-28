@@ -1,4 +1,5 @@
 # model/config.py
+import os
 import asyncio
 from pytune_logger.logger import get_logger, logger_admin
 from pytune_configuration.sync_config_singleton import config, SimpleConfig
@@ -13,7 +14,7 @@ TORTOISE_ORM_CONNECTION = None
 
 def get_database_url()-> str:
     global DATABASE_URL
-    DATABASE_URL = f"postgres://{config.FASTAPI_USER}:{config.FASTAPI_PWD}@{config.DB_HOST}:{config.DB_PORT}/{config.DB_NAME}"
+    DATABASE_URL = f"postgres://{os.getenv("FASTAPI_USER")}:{os.getenv("FASTAPI_PWD")}@{os.getenv("DB_HOST")}:{config.DB_PORT}/{config.DB_NAME}"
     return DATABASE_URL
 
 def get_orm_connection():
