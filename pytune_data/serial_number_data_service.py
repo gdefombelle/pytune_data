@@ -6,9 +6,10 @@ from pytune_data.models import Manufacturer, ManufacturerSerialNumber
 from pytune_data.db import init
 from tortoise.exceptions import DoesNotExist
 import re
-from pytune_logger.logger import get_logger
+from simple_logger.logger import get_logger, SimpleLogger
 
-logger = get_logger(name="debug")
+logger : SimpleLogger = get_logger()
+
 async def get_manufacturer_name(manufacturer_id: int) -> Optional[str]:
     """Récupère le nom du fabricant à partir de son ID."""
     await init()

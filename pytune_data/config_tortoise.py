@@ -1,13 +1,13 @@
 # model/config.py
 import os
 import asyncio
-from pytune_logger.logger import get_logger, logger_admin
+from simple_logger.logger import get_logger, SimpleLogger
 from pytune_configuration.sync_config_singleton import config, SimpleConfig
 
 if config is None:
     config = SimpleConfig()
 
-logger = get_logger("pytune_data", "pytune_tortoise")
+logger : SimpleLogger = get_logger()
 
 DATABASE_URL = None
 TORTOISE_ORM_CONNECTION = None
