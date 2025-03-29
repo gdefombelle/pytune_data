@@ -8,7 +8,7 @@ from tortoise.exceptions import DoesNotExist
 import re
 from simple_logger.logger import get_logger, SimpleLogger
 
-logger : SimpleLogger = get_logger()
+logger : SimpleLogger = get_logger("data")
 
 async def get_manufacturer_name(manufacturer_id: int) -> Optional[str]:
     """Récupère le nom du fabricant à partir de son ID."""

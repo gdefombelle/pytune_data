@@ -7,7 +7,7 @@ from pytune_configuration.sync_config_singleton import config, SimpleConfig
 if config is None:
     config = SimpleConfig()
 
-logger : SimpleLogger = get_logger()
+logger : SimpleLogger = get_logger("data")
 
 DATABASE_URL = None
 TORTOISE_ORM_CONNECTION = None

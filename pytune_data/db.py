@@ -7,7 +7,7 @@ from simple_logger.logger import get_logger, SimpleLogger
 
 _initialized = False
 
-logger : SimpleLogger = get_logger()
+logger : SimpleLogger = get_logger("data")
 
 async def init():
     global _initialized

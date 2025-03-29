@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytune_data"
-version = "1.1.0"
+version = "1.2.0"
 description = "PyTune project - Data Layer"
 authors = ["Gabriel de Fombelle <gabriel.de.fombelle@gmail.com>"]
 license = "MIT"
