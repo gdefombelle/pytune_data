@@ -730,7 +730,7 @@ toml = "^0.10.2"
 type = "git"
 url = "https://github.com/gdefombelle/pytune_configuration.git"
 reference = "HEAD"
-resolved_reference = "4a718a96a7b96ac22d0b70db497ddac57c1850a2"
+resolved_reference = "7392771e9d6d2f850bf9d6be3c1af7385bb6413b"
 
 [[package]]
 name = "pytz"
