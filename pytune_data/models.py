@@ -313,6 +313,19 @@ class OnlineUser(Model):
     class Config:
         from_attributes = True        
 
+
+from pydantic import BaseModel
+from typing import List
+
+class UserContext(BaseModel):
+    firstname: str
+    form_completed: bool
+    pianos: List[dict]  # ou une structure plus précise
+    last_diagnosis_exists: bool
+    tuning_session_exists: bool
+    language: str
+
+
 class ClientAPI(Model):
     """
     Modèle représentant les clients d'API pour le système d'autorisation OAuth.
