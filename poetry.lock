@@ -710,7 +710,7 @@ cli = ["click (>=5.0)"]
 
 [[package]]
 name = "pytune-configuration"
-version = "2.0.1"
+version = "2.0.2"
 description = "Configuration and service utilities for PyTune platform"
 optional = false
 python-versions = "^3.12"
@@ -730,7 +730,7 @@ toml = "^0.10.2"
 type = "git"
 url = "https://github.com/gdefombelle/pytune_configuration.git"
 reference = "HEAD"
-resolved_reference = "ae657d548575e153d02cef3a0d50cd6140a39703"
+resolved_reference = "4a718a96a7b96ac22d0b70db497ddac57c1850a2"
 
 [[package]]
 name = "pytz"
