@@ -226,6 +226,7 @@ class User(Model):
         return self.first_name
 
 class UserPianoModel(Model):
+    id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="pianos")
     piano_model = fields.ForeignKeyField("models.PianoModel", related_name="pianomodel_user", null=True)
     name = fields.CharField(max_length=255, null=True)
