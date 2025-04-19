@@ -252,3 +252,37 @@ class ClientAPIUpdate(BaseModel):
     scope: Optional[str]
     grant_types: Optional[str]
     token_endpoint_auth_method: Optional[str]
+
+class DiagnosisBase(BaseModel):
+    user_id: int
+    pianomodel_user_id: int
+    status: int = 0
+    data: Optional[dict] = None
+
+class DiagnosisCreate(DiagnosisBase):
+    pass
+
+class DiagnosisInDB(DiagnosisBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class TuningSessionBase(BaseModel):
+    user_id: int
+    pianomodel_user_id: int
+    status: int = 0
+    data: Optional[dict] = None
+
+class TuningSessionCreate(TuningSessionBase):
+    pass
+
+class TuningSessionInDB(TuningSessionBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True

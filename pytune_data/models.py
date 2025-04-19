@@ -351,3 +351,27 @@ class ClientAPI(Model):
 
     def __str__(self):
         return self.client_name
+
+class Diagnosis(Model):
+    id = fields.IntField(pk=True)
+    user = fields.ForeignKeyField("models.User", related_name="diagnoses", on_delete=fields.CASCADE)
+    pianomodel_user = fields.ForeignKeyField("models.UserPianoModel", related_name="diagnoses", on_delete=fields.CASCADE)
+    status = fields.IntField(default=0)  # Peut devenir un Enum plus tard
+    data = fields.JSONField(null=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "diagnosis"
+
+class TuningSession(Model):
+    id = fields.IntField(pk=True)
+    user = fields.ForeignKeyField("models.User", related_name="tuning_sessions", on_delete=fields.CASCADE)
+    pianomodel_user = fields.ForeignKeyField("models.UserPianoModel", related_name="tuning_sessions", on_delete=fields.CASCADE)
+    status = fields.IntField(default=0)  # Peut devenir un Enum plus tard
+    data = fields.JSONField(null=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "tuning_session"

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pytune_data"
-version = "1.2.1"
+version = "1.2.2"
 description = "PyTune project - Data Layer"
 authors = ["Gabriel de Fombelle <gabriel.de.fombelle@gmail.com>"]
 license = "MIT"
@@ -10,6 +10,7 @@ repository = "https://github.com/gdefombelle/pytune_data"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+
 setuptools = "*"
 tortoise-orm = "*"
 numpy = "*"
