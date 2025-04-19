@@ -13,7 +13,7 @@ async def get_user_context(user_id: Optional[int] = None, email: Optional[str] =
 
     user: Optional[User] = None
     if user_id:
-        user = await User.get_or_none(id=user_id)  # sans prefetch_related
+        user = await User.get_or_none(id=user_id)
     elif email:
         user = await User.get_or_none(email=email)
 
@@ -21,7 +21,10 @@ async def get_user_context(user_id: Optional[int] = None, email: Optional[str] =
         logger.warning("User not found for context fetch.")
         return None
 
-    pianos = await user.pianos.all()
+    # 🔥 fetch la relation "pianos"
+    await user.fetch_related("pianos")
+    pianos = user.pianos
+
     pianos_data = [
         {
             "id": piano.id,
