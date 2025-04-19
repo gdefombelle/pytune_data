@@ -13,9 +13,9 @@ async def get_user_context(user_id: Optional[int] = None, email: Optional[str] =
 
     user: Optional[User] = None
     if user_id:
-        user = await User.get_or_none(id=user_id).prefetch_related("pianos")
+        user = await User.get_or_none(id=user_id)  # sans prefetch_related
     elif email:
-        user = await User.get_or_none(email=email).prefetch_related("pianos")
+        user = await User.get_or_none(email=email)
 
     if not user:
         logger.warning("User not found for context fetch.")
