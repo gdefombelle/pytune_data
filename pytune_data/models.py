@@ -314,8 +314,7 @@ class OnlineUser(Model):
         from_attributes = True        
 
 
-from pydantic import BaseModel
-from typing import List
+
 
 class UserContext(BaseModel):
     firstname: str
