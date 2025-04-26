@@ -1,4 +1,5 @@
 
+import datetime
 from tortoise import fields, models
 from tortoise.models import Model
 from tortoise.contrib.fastapi import register_tortoise
@@ -54,6 +55,10 @@ class UserTypeEnum(IntEnum):
     PROFESSIONNAL = 1
     ADMIN = 99
 
+class PianoCategoryEnum(Enum):
+    GRAND = 1
+    UPRIGHT = 2
+    # Ajouter d'autres types si nécessaire
 
 
 class Manufacturer(Model):
@@ -82,15 +87,6 @@ class Manufacturer(Model):
         unique_together = (('company', 'originated_by'),)  # Contrainte d'unicité sur les deux champs
     def __str__(self) -> str:
         return self.company
-
-
-
-# Si vous avez un Enum pour les types de piano
-class PianoCategoryEnum(Enum):
-    GRAND = 1
-    UPRIGHT = 2
-    # Ajouter d'autres types si nécessaire
-
 
 class PianoType(Model):
     id = fields.IntField(pk=True)
@@ -136,8 +132,6 @@ class PianoSerialCache(Model):
     class Meta:
         table = "piano_serial_cache"
 
-
-
 class PianoModel(Model):
     id = fields.IntField(pk=True, autoincrement=True)
     manufacturer = fields.ForeignKeyField("models.Manufacturer", related_name="piano_models")
@@ -178,8 +172,6 @@ class PianoImage(Model):
     class Meta:
         table = "piano_images"
 
-
-
 class User(Model):
     id = fields.IntField(pk=True, autoincrement=True)
     pianos = fields.ReverseRelation["UserPianoModel"]
@@ -198,7 +190,7 @@ class User(Model):
     country = fields.CharField(max_length=50, null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
-    last_connection = fields.DatetimeField(auto_now=True)
+    last_connection = fields.DatetimeField(null=True)
     user_type = fields.IntEnumField(UserTypeEnum, default=UserTypeEnum.INDIVIDUAL)
 
     # Champs supplémentaires
@@ -228,7 +220,14 @@ class User(Model):
 class UserPianoModel(Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField("models.User", related_name="pianos")
-    piano_model = fields.ForeignKeyField("models.PianoModel", related_name="pianomodel_user", null=True)
+    piano_model = fields.ForeignKeyField(
+        "models.PianoModel",
+        related_name="user_pianos",
+        null=True,
+        db_column="pianomodel_id",
+        source_field="pianomodel_id"  # 🛠 c'est ça qui manque
+    )
+
     name = fields.CharField(max_length=255, null=True)
     location = fields.CharField(max_length=255, null=True)
     purchase_year = fields.IntField(null=True)
@@ -300,8 +299,6 @@ class Session(Model):
             'acoustic_signals': self.numpy_acoustic_signals
         }
 
-
-
 class OnlineUser(Model):
     user_email = fields.CharField(max_length=255, pk=True)
     platform = fields.CharField(max_length=50)
@@ -314,17 +311,25 @@ class OnlineUser(Model):
     class Config:
         from_attributes = True        
 
-
-
-
 class UserContext(BaseModel):
     firstname: str
     form_completed: bool
     pianos: List[dict]  # ou une structure plus précise
     last_diagnosis_exists: bool
     tuning_session_exists: bool
-    language: str
+    language: str = "en"
+    last_login: datetime
+    subscription_level: str
 
+    # Nouvel espace "profil musical émotionnel"
+    piano_years_playing: Optional[int] = None
+    piano_study_started_as: Optional[str] = None  # "Child", "Adult", "Self-taught"
+    music_styles: Optional[List[str]] = []
+    favorite_composers: Optional[List[str]] = []
+    favorite_performers: Optional[List[str]] = []
+    current_piece: Optional[str] = None
+    piano_satisfaction: Optional[str] = None
+    wishes_to_change_piano: Optional[bool] = None
 
 class ClientAPI(Model):
     """

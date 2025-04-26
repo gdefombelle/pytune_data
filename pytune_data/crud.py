@@ -1,4 +1,5 @@
 # crud.py
+import datetime
 from tortoise.transactions import in_transaction
 from tortoise.exceptions import DoesNotExist
 from pytune_data.models import Manufacturer, PianoModel, User, Session, UserStatusEnum
@@ -93,3 +94,10 @@ async def update_session(session_id: int, session: SessionUpdate) -> SessionInDB
     await db_session.update_from_dict(session.model_dump())
     await db_session.save()
     return SessionInDB.model_validate(db_session)
+
+async def update_user_last_connection(user_id: int):
+    await init()
+    user = await User.get(id=user_id)
+    if user:
+        user.last_connection = datetime.utcnow()
+        await user.save(update_fields=["last_connection"])

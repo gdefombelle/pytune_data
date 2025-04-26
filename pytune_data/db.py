@@ -15,7 +15,7 @@ async def init():
         try:
             # Initialiser Tortoise ORM
             await Tortoise.init(config=get_orm_connection())
-            await Tortoise.generate_schemas()
+            # await Tortoise.generate_schemas() <-- EN DEV UNIQUEMENT 
             # Vérifier la connexion avec une requête simple
             connection = Tortoise.get_connection("default")
             await connection.execute_query("SELECT 1;")
