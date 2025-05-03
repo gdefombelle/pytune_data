@@ -1,15 +1,15 @@
 [tool.poetry]
 name = "pytune_data"
-version = "1.2.8"
+version = "1.3.0"
 description = "PyTune project - Data Layer"
 authors = ["Gabriel de Fombelle <gabriel.de.fombelle@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/gdefombelle/pytune_data"
-
+packages = [{ include = "pytune_data" }]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.12.3"
 
 setuptools = "*"
 tortoise-orm = "*"
@@ -20,8 +20,15 @@ asyncpg = "*"
 pydantic = { version = "*", extras = ["email"] }
 
 # Dépendances internes
-simple_logger ={ git = "https://github.com/gdefombelle/simple_logger.git" }
-pytune_configuration = { git = "https://github.com/gdefombelle/pytune_configuration.git" }
+# -- PROD -- 
+# simple_logger ={ git = "https://github.com/gdefombelle/simple_logger.git" }
+# pytune_configuration = { git = "https://github.com/gdefombelle/pytune_configuration.git" }
+
+# -- DEV --
+simple_logger =  { path ="../../packages/simple_logger"}
+pytune_configuration = { path = "../../packages/pytune_configuration"}
+
+
 unidecode = "^1.3.8"
 openai = "^1.63.0"
 

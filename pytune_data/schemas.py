@@ -149,6 +149,7 @@ class UserCreateSchema(BaseModel):
     accepted_tos : bool
     accepted_privacy_policy : bool
     extra_data : Optional[Union[str, Dict[str, Union[str, int, bool, None]]]] = None
+
     
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, max_length=255)
@@ -171,7 +172,9 @@ class UserUpdate(BaseModel):
     website: Optional[str] = None
     history: Optional[str] = None
     social_networks: Optional[str] = None
-    # extra_data : Optional[Union[str, Dict[str, Union[str, int, bool, None]]]]
+    accepted_tos : bool
+    accepted_privacy_policy : bool
+    extra_data : Optional[Union[str, Dict[str, Union[str, int, bool, None]]]] = None
     class Config:
         from_attributes = True
 
@@ -189,7 +192,7 @@ class UserInDB(UserBase):
     id: int
     created_at: datetime
     updated_at: datetime
-    last_connection: datetime
+    last_connection: Optional[datetime] = None
     user_type: UserTypeEnum
     status:UserStatusEnum
 

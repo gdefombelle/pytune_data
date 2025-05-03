@@ -1,5 +1,5 @@
 
-import datetime
+from datetime import datetime
 from tortoise import fields, models
 from tortoise.models import Model
 from tortoise.contrib.fastapi import register_tortoise
@@ -188,9 +188,9 @@ class User(Model):
     language = fields.CharField(max_length=8, default='en')
     timezone = fields.CharField(max_length=50, default='UTC')
     country = fields.CharField(max_length=50, null=True)
-    created_at = fields.DatetimeField(auto_now_add=True)
-    updated_at = fields.DatetimeField(auto_now=True)
-    last_connection = fields.DatetimeField(null=True)
+    created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
+    updated_at = fields.DatetimeField(auto_now=True, timezone=True)
+    last_connection = fields.DatetimeField(null=True, timezone=True)
     user_type = fields.IntEnumField(UserTypeEnum, default=UserTypeEnum.INDIVIDUAL)
 
     # Champs supplémentaires
@@ -205,9 +205,9 @@ class User(Model):
     oauth_provider = fields.TextField(null=True)
 
     accepted_tos = fields.BooleanField(default=False)
-    accepted_tos_at = fields.DatetimeField(null=True)
+    accepted_tos_at = fields.DatetimeField(null=True, timezone=True)
     accepted_privacy_policy = fields.BooleanField(default=False)
-    accepted_privacy_policy_at = fields.DatetimeField(null=True)
+    accepted_privacy_policy_at = fields.DatetimeField(null=True, timezone=True)
     extra_data = fields.JSONField(null=True)
     class Config:
         from_attributes = True
@@ -331,6 +331,10 @@ class UserContext(BaseModel):
     piano_satisfaction: Optional[str] = None
     wishes_to_change_piano: Optional[bool] = None
 
+    class Config:
+        from_attributes = True
+        arbitrary_types_allowed = True 
+        
 class ClientAPI(Model):
     """
     Modèle représentant les clients d'API pour le système d'autorisation OAuth.

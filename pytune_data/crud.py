@@ -1,5 +1,6 @@
 # crud.py
-import datetime
+from datetime import datetime
+from tortoise.timezone import now
 from tortoise.transactions import in_transaction
 from tortoise.exceptions import DoesNotExist
 from pytune_data.models import Manufacturer, PianoModel, User, Session, UserStatusEnum
@@ -58,12 +59,13 @@ async def create_user(user: UserCreateSchema) -> UserInDB:
     return UserInDB.model_validate(db_user)
 
 async def update_user(user_id: int, user: UserUpdate) -> UserInDB:
+    print("🔥 pytune_data.services.user_service.update_user() loaded")  # tout en haut
     await init()
     db_user = await User.get(id=user_id)
     # Met à jour les champs de l'utilisateur avec ceux fournis dans le schéma
     await db_user.update_from_dict(user.model_dump(exclude_unset=True))
     await db_user.save()
-    return UserInDB.model_validate(db_user)
+    return db_user
 
 async def update_user_status(user_id: int, new_status: UserStatusEnum) -> UserInDB:  # Type hint corrigé
     """
@@ -99,5 +101,5 @@ async def update_user_last_connection(user_id: int):
     await init()
     user = await User.get(id=user_id)
     if user:
-        user.last_connection = datetime.utcnow()
+        user.last_connection = now()
         await user.save(update_fields=["last_connection"])
