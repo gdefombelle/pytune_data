@@ -62,7 +62,6 @@ async def search_piano_model(query: str, email: str, manufacturer_id: int):
     return piano_models
 
 
-
 # Fonction pour récupérer tous les modèles de piano d'un fabricant
 async def get_piano_models_by_manufacturer(manufacturer_id: int, email: str = None) -> List[PianoModel]:
     await init()
@@ -124,7 +123,6 @@ async def create_user_piano_model(piano_model: PianoModelCreate, email:str = Non
     piano_model_in_db = PianoModelInDB(**piano_model_dict)
     return piano_model_in_db
 
-
 async def generate_unique_piano_name(user_id: int, manufacturer_name: str, piano_model_name: str) -> str:
     """
     Fonction pour générer un nom unique pour un piano en cas de duplication.
@@ -149,7 +147,6 @@ async def generate_unique_piano_name(user_id: int, manufacturer_name: str, piano
     # Retourner le nom avec le suffixe
     return f"{combined_name} ({suffix})"
 
-
 async def add_piano_to_user(user_id: int, piano_model_id: int, name: Optional[str] = None):
     # Récupère le modèle de piano
     await init()
@@ -169,7 +166,6 @@ async def add_piano_to_user(user_id: int, piano_model_id: int, name: Optional[st
     )
     
     return new_piano
-
 
 async def update_manufacturer(manufacturer_id: int, manufacturer: ManufacturerUpdate) -> ManufacturerInDB:
     await init()
@@ -202,3 +198,48 @@ async def insert_serial_numbers(manufacturer_id: int, serial_numbers: List[Manuf
     await ManufacturerSerialNumber.bulk_create([
         ManufacturerSerialNumber(**data) for data in serial_data
     ])
+
+    from tortoise import Tortoise
+
+# Fonction pour récupérer le type de piano (ex: Studio, Demi-queue) en fonction de la catégorie et de la taille
+async def get_piano_type_by_category_and_size(
+    size_cm: int,
+    category_id: int = None,
+    category_name: str = None,
+):
+    await init()
+
+    if category_id is not None:
+        sql = """
+            SELECT 
+                pt.subtype AS type_en,
+                pt.localized_name AS type_fr,
+                pt.min_size_cm,
+                pt.max_size_cm
+            FROM piano_types pt
+            WHERE pt.category_id = $1
+              AND $2 BETWEEN pt.min_size_cm AND pt.max_size_cm
+            LIMIT 1
+        """
+        params = [category_id, size_cm]
+
+    elif category_name is not None:
+        sql = """
+            SELECT 
+                pt.subtype AS type_en,
+                pt.localized_name AS type_fr,
+                pt.min_size_cm,
+                pt.max_size_cm
+            FROM piano_types pt
+            JOIN piano_categories pc ON pt.category_id = pc.id
+            WHERE pc.name = $1
+              AND $2 BETWEEN pt.min_size_cm AND pt.max_size_cm
+            LIMIT 1
+        """
+        params = [category_name, size_cm]
+
+    else:
+        raise ValueError("You must provide either category_id or category_name.")
+
+    result = await Tortoise.get_connection("default").execute_query(sql, params)
+    return result[1][0] if result[1] else None
