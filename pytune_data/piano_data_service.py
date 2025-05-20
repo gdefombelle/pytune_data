@@ -39,6 +39,7 @@ async def search_manufacturer(query: str, email: str):
 
     return manufacturers[1]
 
+
 async def search_piano_model(query: str, email: str, manufacturer_id: int):
     # Normaliser la chaîne de recherche pour supprimer les accents et préparer la recherche
     normalized_query = unidecode(query).lower()  # Conversion en minuscule pour rendre la recherche insensible à la casse
