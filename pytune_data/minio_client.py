@@ -7,7 +7,7 @@ config = config or SimpleConfig()
 MINIO_ENDPOINT = config.MINIO_ENDPOINT
 MINIO_ACCESS_KEY = config.MINIO_ACCESS_KEY
 MINIO_SECRET_KEY = config.MINIO_SECRET_KEY
-BUCKET_NAME = config.MINIO_BUCKET_NAME
+BUCKET_NAME = config.MINIO_TEMP_BUCKET
 
 class MinioClient:
     def __init__(self):

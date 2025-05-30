@@ -7,7 +7,7 @@ config = config or SimpleConfig()
 
 QDRANT_HOST = config.QDRANT_HOST
 QDRANT_PORT = config.QDRANT_PORT
-COLLECTION_NAME = config.COLLECTION_NAME
+COLLECTION_NAME = config.QDRANT_COLLECTION_NAME
 
 client = QdrantClient(host=QDRANT_HOST, port=QDRANT_PORT)
 
