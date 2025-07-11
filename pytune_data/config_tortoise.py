@@ -18,17 +18,18 @@ def get_database_url()-> str:
     return DATABASE_URL
 
 def get_orm_connection():
-    """Construit et renvoie la configuration de Tortoise ORM."""
     global TORTOISE_ORM_CONNECTION
-    TORTOISE_ORM_CONNECTION =  {
+    TORTOISE_ORM_CONNECTION = {
         "connections": {"default": get_database_url()},
         "apps": {
             "models": {
-                "models": ["pytune_data.models"],
+                "models": [
+                    "pytune_data.models",
+                    "pytune_chat.models",  # 👈 ajoute cette ligne
+                ],
                 "default_connection": "default",
             }
         },
     }
     return TORTOISE_ORM_CONNECTION
-
 

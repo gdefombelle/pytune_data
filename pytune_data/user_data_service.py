@@ -7,7 +7,6 @@ from simple_logger.logger import get_logger, SimpleLogger
 logger: SimpleLogger = get_logger("data")
 
 async def get_user_context(user_id: Optional[int] = None, email: Optional[str] = None) -> Optional[UserContext]:
-    print("🐍 Entering get_user_context function")
     if not user_id and not email:
         raise ValueError("user_id or email must be provided")
 

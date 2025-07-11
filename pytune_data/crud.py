@@ -59,7 +59,6 @@ async def create_user(user: UserCreateSchema) -> UserInDB:
     return UserInDB.model_validate(db_user)
 
 async def update_user(user_id: int, user: UserUpdate) -> UserInDB:
-    print("🔥 pytune_data.services.user_service.update_user() loaded")  # tout en haut
     await init()
     db_user = await User.get(id=user_id)
     # Met à jour les champs de l'utilisateur avec ceux fournis dans le schéma

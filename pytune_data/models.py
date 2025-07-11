@@ -1,5 +1,6 @@
 
 from datetime import datetime
+from uuid import uuid4
 from tortoise import fields, models
 from tortoise.models import Model
 from tortoise.contrib.fastapi import register_tortoise
@@ -136,6 +137,7 @@ class PianoModel(Model):
     id = fields.IntField(pk=True, autoincrement=True)
     manufacturer = fields.ForeignKeyField("models.Manufacturer", related_name="piano_models")
     name = fields.CharField(max_length=255)  # Ce champ est obligatoire
+    normalized_name = fields.CharField(max_length=255, null=True)  # Optionnel, calculé par la DB
     serie = fields.CharField(max_length=255, null=True, default="")  # Champ optionnel
     kind = fields.IntEnumField(PianoCategoryEnum)  # Champ optionnel avec enum
     notes = fields.TextField(null=True, default="")  # Champ optionnel
@@ -384,3 +386,4 @@ class TuningSession(Model):
 
     class Meta:
         table = "tuning_session"
+

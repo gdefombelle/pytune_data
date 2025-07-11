@@ -1,4 +1,5 @@
-from typing import List, Optional
+import asyncio
+from typing import Dict, List, Optional
 from tortoise import Tortoise
 from tortoise.transactions import in_transaction
 from tortoise.exceptions import DoesNotExist
@@ -9,6 +10,32 @@ from pytune_data.schemas import (
 from tortoise.queryset import Q
 from pytune_data.db import init, close
 from unidecode import unidecode
+from tortoise.expressions import Q
+from tortoise.functions import Function
+from rapidfuzz.fuzz import partial_ratio
+from tortoise import Tortoise
+
+
+
+async def get_all_normalized_brands() -> List[str]:
+    """
+    Retourne la liste de toutes les marques de piano connues,
+    sous forme de noms normalisés, sans doublons ni valeurs nulles.
+    """
+    await init()
+    conn = Tortoise.get_connection("default")
+
+    rows = await conn.execute_query(
+        """
+        SELECT DISTINCT normalized_name
+        FROM manufacturer
+        WHERE normalized_name IS NOT NULL
+        ORDER BY normalized_name ASC
+        """
+    )
+    # rows[1] contient les résultats ; rows[0] est la description
+    brand_list = [row[0] for row in rows[1] if row[0]]
+    return brand_list
 
 
 
@@ -31,13 +58,85 @@ async def search_manufacturer(query: str, email: str):
         SELECT * 
         FROM manufacturer
         WHERE normalized_name % $1
-        AND (originated_by IS NULL OR originated_by = $2)
+        AND (originated_by IS NULL OR originated_by = $2 OR originated_by = "llm")
         LIMIT 10
         """, 
         [normalized_query, email]
     )
 
     return manufacturers[1]
+
+async def search_manufacturer_full(query: str, email: Optional[str]) -> List[Dict]:
+    await init()
+    normalized_query = unidecode(query).lower()
+
+    sql = """
+    SELECT id, company, normalized_name, place, country,
+           similarity(normalized_name, $1) AS score
+    FROM manufacturer
+    WHERE normalized_name % $1
+    AND (originated_by IS NULL OR originated_by = $2 OR originated_by ='llm')
+    ORDER BY score DESC
+    LIMIT 10
+    """
+    rows = await Tortoise.get_connection("default").execute_query(sql, [normalized_query, email])
+    manufacturers = rows[1]
+
+    return [
+        {
+            "id": r["id"],
+            "company": r["company"],
+            "normalized_name": r["normalized_name"],
+            "place": r["place"],
+            "country": r["country"],
+            "score": round(r["score"], 3),
+        }
+        for r in manufacturers
+    ]
+
+
+async def search_model_full(query: str, manufacturer_id: int, email: Optional[str]) -> List[Dict]:
+    await init()
+    normalized_query = unidecode(query).lower().replace('-', '').replace('_', '').replace(' ', '')
+
+    sql = """
+    SELECT id, name, normalized_name, kind,
+           width_cm, length_cm, height_cm,
+           notes, serie, str_length, str_height,
+           keys, size_cm,
+           piano_type_id, piano_type,
+           similarity(normalized_name, $1) AS score
+    FROM pianomodel
+    WHERE manufacturer_id = $2
+      AND normalized_name % $1
+    ORDER BY score DESC
+    LIMIT 10
+    """
+
+    rows = await Tortoise.get_connection("default").execute_query(sql, [normalized_query, manufacturer_id])
+    models = rows[1]
+
+    return [
+        {
+            "id": r["id"],
+            "name": r["name"],
+            "normalized_name": r["normalized_name"],
+            "notes": r["notes"],
+            "kind": r["kind"],
+            "width_cm": r["width_cm"],
+            "length_cm": r["length_cm"],
+            "height_cm": r["height_cm"],
+            "serie": r["serie"],
+            "str_length": r["str_length"],
+            "str_height": r["str_height"],
+            "keys": r["keys"],
+            "size_cm": r["size_cm"],
+            "piano_type_id": r["piano_type_id"],
+            "piano_type": r["piano_type"],
+            "score": round(r["score"], 3),
+        }
+        for r in models
+    ]
 
 
 async def search_piano_model(query: str, email: str, manufacturer_id: int):
@@ -114,6 +213,7 @@ async def create_user_manufacturer(manufacturer: UserManufacturerCreate) -> Manu
     # Valide et transforme le dictionnaire en ManufacturerInDB
     manufacturer_in_db =  ManufacturerInDB(**manufacturer_dict)
     return manufacturer_in_db
+
 
 async def create_user_piano_model(piano_model: PianoModelCreate, email:str = None) -> PianoModelInDB:
     await init()
