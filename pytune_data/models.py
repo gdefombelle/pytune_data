@@ -214,38 +214,64 @@ class User(Model):
     class Config:
         from_attributes = True
     class Meta:
-        table = 'user'
+        table = 'users'
 
     def __str__(self) -> str:
         return self.first_name
 
 class UserPianoModel(Model):
     id = fields.IntField(pk=True)
+
+    # Relations
     user = fields.ForeignKeyField("models.User", related_name="pianos")
     piano_model = fields.ForeignKeyField(
         "models.PianoModel",
         related_name="user_pianos",
         null=True,
         db_column="pianomodel_id",
-        source_field="pianomodel_id"  # 🛠 c'est ça qui manque
+        source_field="pianomodel_id"
+    )
+    manufacturer = fields.ForeignKeyField(
+        "models.Manufacturer",
+        related_name="user_pianos",
+        null=True,
+        db_column="manufacturer_id"
     )
 
+    # Info libre utilisateur
     name = fields.CharField(max_length=255, null=True)
     location = fields.CharField(max_length=255, null=True)
     purchase_year = fields.IntField(null=True)
+    serial_number = fields.CharField(max_length=255, null=True)
+    manufacture_year = fields.IntField(null=True)
+    notes = fields.TextField(null=True)
+
+    # 🎹 Infos piano (extraits, LLM, utilisateur ou auto)
+    model_name = fields.CharField(max_length=255, null=True)
+    kind = fields.CharField(max_length=50, null=True)  # ex: "grand", "upright"
+    type_label = fields.CharField(max_length=100, null=True)  # ex: "baby grand", "console"
+    size_cm = fields.FloatField(null=True)
+    keys = fields.IntField(null=True)
+
+    # 🧠 Résumé généré ou audio
+    llm_description = fields.TextField(null=True)
+    sound_characteristics = fields.TextField(null=True)
+    condition_notes = fields.TextField(null=True)
+
+    # 🛠 Logs et extras
     maintenance_log = fields.JSONField(null=True)
-    
-    # Champs JSON flexibles
     custom_data = fields.JSONField(null=True)
     extra_data = fields.JSONField(null=True)
-    notes = fields.TextField(null=True) 
-    # Nouveaux champs ajoutés pour les informations supplémentaires
-    serial_number = fields.CharField(max_length=255, null=True)  # Numéro de série du piano
-    manufacture_year = fields.IntField(null=True)  # Année de fabrication du piano
+
+    # Métadonnées
+    status = fields.IntField(default=0)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
 
     class Meta:
         table = "pianomodel_user"
         unique_together = (("user", "piano_model"),)
+
     class Config:
         from_attributes = True
 
@@ -387,3 +413,25 @@ class TuningSession(Model):
     class Meta:
         table = "tuning_session"
 
+class PianoIdentificationSession(Model):
+    id = fields.UUIDField(pk=True, default=uuid4)
+    
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="guess_sessions",
+        null=True,
+        on_delete=fields.SET_NULL
+    )
+
+    image_urls = fields.JSONField(null=True)         # List[str]
+    photo_labels = fields.JSONField(null=True)       # Dict[str, str]
+    context_snapshot = fields.JSONField(null=True)   # dict
+    model_hypothesis = fields.JSONField(null=True)   # dict
+
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "piano_identification_sessions"
+
+    def __str__(self):
+        return f"PianoGuessSession(id={self.id})"

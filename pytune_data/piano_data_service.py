@@ -97,7 +97,12 @@ async def search_manufacturer_full(query: str, email: Optional[str]) -> List[Dic
 
 async def search_model_full(query: str, manufacturer_id: int, email: Optional[str]) -> List[Dict]:
     await init()
-    normalized_query = unidecode(query).lower().replace('-', '').replace('_', '').replace(' ', '')
+    normalized_query = (
+        unidecode(query)
+        .lower()
+        .replace("model", "")
+        .strip()
+        )
 
     sql = """
     SELECT id, name, normalized_name, kind,
@@ -141,7 +146,12 @@ async def search_model_full(query: str, manufacturer_id: int, email: Optional[st
 
 async def search_piano_model(query: str, email: str, manufacturer_id: int):
     # Normaliser la chaîne de recherche pour supprimer les accents et préparer la recherche
-    normalized_query = unidecode(query).lower()  # Conversion en minuscule pour rendre la recherche insensible à la casse
+    normalized_query = (
+        unidecode(query)
+        .lower()
+        .replace("model", "")
+        .strip()
+    )  # Conversion en minuscule pour rendre la recherche insensible à la casse + virer "model'
 
     # Assure-toi d'initialiser la connexion à la base de données
     await init()
@@ -182,6 +192,10 @@ async def get_piano_models_by_manufacturer(manufacturer_id: int, email: str = No
 async def get_piano_model(model_id: int):
     await init()
     return await PianoModel.get(id=model_id)
+
+async def get_manufacturer_name(manufacturer_id: int) -> str:
+    manu = await Manufacturer.get_or_none(id=manufacturer_id)
+    return manu.company if manu else "Unknown"
 
 async def get_closed_manufacturers():
     await init()

@@ -1,6 +1,7 @@
 # schemas.py
+from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from pytune_data.models import ManufacturerStatus, PianoCategoryEnum, UserStatusEnum, ClientStatusEnum, UserTypeEnum
 from datetime import datetime
 
@@ -289,3 +290,23 @@ class TuningSessionInDB(TuningSessionBase):
 
     class Config:
         from_attributes = True
+
+
+class PianoIdentificationSessionCreate(BaseModel):
+    user_id: Optional[int] = None
+    image_urls: Optional[List[str]] = None
+    photo_labels: Optional[Dict[str, str]] = None
+    context_snapshot: Optional[Dict[str, Any]] = None
+    model_hypothesis: Optional[Dict[str, Any]] = None
+
+class PianoIdentificationSessionRead(BaseModel):
+    id: UUID
+    user_id: Optional[int]
+    image_urls: Optional[List[str]] = None
+    photo_labels: Optional[Dict[str, str]] = None
+    context_snapshot: Optional[Dict[str, Any]] = None
+    model_hypothesis: Optional[Dict[str, Any]] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True  # pour compatibilité avec Tortoise ORM

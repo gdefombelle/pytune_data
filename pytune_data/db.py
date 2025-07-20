@@ -4,6 +4,7 @@ from tortoise import Tortoise
 from pytune_data.config_tortoise import get_orm_connection
 from tortoise.exceptions import DBConnectionError
 from simple_logger.logger import get_logger, SimpleLogger
+from functools import wraps
 
 _initialized = False
 
@@ -35,3 +36,10 @@ async def close():
         await logger.ainfo("Tortoise database connections closed.")
         _initialized = False
 
+
+def ensure_db_initialized(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        await init()
+        return await func(*args, **kwargs)
+    return wrapper
