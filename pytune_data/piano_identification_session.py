@@ -7,10 +7,11 @@ from typing import Optional, List
 from uuid import UUID
 
 @ensure_db_initialized
-async def create_guess_session(
+async def create_identification_session(
     user_id: Optional[UUID],
     image_urls: List[str],
     photo_labels: Optional[dict] = None,
+    photo_metadata :Optional[dict] = None,
     context_snapshot: Optional[dict] = None,
     model_hypothesis: Optional[dict] = None
 ) -> PianoIdentificationSession:
@@ -41,7 +42,7 @@ async def update_identification_session(session_id: UUID, **fields) -> Optional[
     return session
 
 @ensure_db_initialized
-async def delete_guess_session(session_id: UUID) -> bool:
+async def delete_identification_session(session_id: UUID) -> bool:
     session = await get_identification_session(session_id)
     if not session:
         return False

@@ -407,8 +407,8 @@ class TuningSession(Model):
     pianomodel_user = fields.ForeignKeyField("models.UserPianoModel", related_name="tuning_sessions", on_delete=fields.CASCADE)
     status = fields.IntField(default=0)  # Peut devenir un Enum plus tard
     data = fields.JSONField(null=True)
-    created_at = fields.DatetimeField(auto_now_add=True)
-    updated_at = fields.DatetimeField(auto_now=True)
+    created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
+    updated_at = fields.DatetimeField(auto_now=True, timezone=True)
 
     class Meta:
         table = "tuning_session"
@@ -424,11 +424,12 @@ class PianoIdentificationSession(Model):
     )
 
     image_urls = fields.JSONField(null=True)         # List[str]
+    photo_metadata = fields.JSONField(default=list) 
     photo_labels = fields.JSONField(null=True)       # Dict[str, str]
     context_snapshot = fields.JSONField(null=True)   # dict
     model_hypothesis = fields.JSONField(null=True)   # dict
 
-    created_at = fields.DatetimeField(auto_now_add=True)
+    created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
 
     class Meta:
         table = "piano_identification_sessions"

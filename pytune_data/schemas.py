@@ -295,18 +295,21 @@ class TuningSessionInDB(TuningSessionBase):
 class PianoIdentificationSessionCreate(BaseModel):
     user_id: Optional[int] = None
     image_urls: Optional[List[str]] = None
+    photo_metadata: Optional[List[dict]] = None
     photo_labels: Optional[Dict[str, str]] = None
     context_snapshot: Optional[Dict[str, Any]] = None
     model_hypothesis: Optional[Dict[str, Any]] = None
+
 
 class PianoIdentificationSessionRead(BaseModel):
     id: UUID
     user_id: Optional[int]
     image_urls: Optional[List[str]] = None
+    photo_metadata: Optional[List[dict]] = None
     photo_labels: Optional[Dict[str, str]] = None
     context_snapshot: Optional[Dict[str, Any]] = None
     model_hypothesis: Optional[Dict[str, Any]] = None
     created_at: datetime
 
     class Config:
-        from_attributes = True  # pour compatibilité avec Tortoise ORM
+        from_attributes = True  # compatibilité avec Tortoise ORM

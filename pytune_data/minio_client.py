@@ -7,7 +7,8 @@ config = config or SimpleConfig()
 MINIO_ENDPOINT = config.MINIO_ENDPOINT
 MINIO_ACCESS_KEY = config.MINIO_ACCESS_KEY
 MINIO_SECRET_KEY = config.MINIO_SECRET_KEY
-BUCKET_NAME = config.MINIO_TEMP_BUCKET
+TEMP_BUCKET_NAME = config.MINIO_TEMP_BUCKET
+PIANO_SESSION_BUCKET = config.MINIO_PIANO_SESSION_BUCKET
 
 class MinioClient:
     def __init__(self):
@@ -19,7 +20,7 @@ class MinioClient:
         )
 
     def ensure_bucket_exists(self):
-        if not self.client.bucket_exists(BUCKET_NAME):
-            self.client.make_bucket(BUCKET_NAME)
+        if not self.client.bucket_exists(TEMP_BUCKET_NAME):
+            self.client.make_bucket(TEMP_BUCKET_NAME)
 
 minio_client = MinioClient()
