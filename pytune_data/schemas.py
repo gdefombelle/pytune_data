@@ -299,6 +299,7 @@ class PianoIdentificationSessionCreate(BaseModel):
     photo_labels: Optional[Dict[str, str]] = None
     context_snapshot: Optional[Dict[str, Any]] = None
     model_hypothesis: Optional[Dict[str, Any]] = None
+    report_url: Optional[str] = None
 
 
 class PianoIdentificationSessionRead(BaseModel):
@@ -309,6 +310,9 @@ class PianoIdentificationSessionRead(BaseModel):
     photo_labels: Optional[Dict[str, str]] = None
     context_snapshot: Optional[Dict[str, Any]] = None
     model_hypothesis: Optional[Dict[str, Any]] = None
+    metadata: Optional[Dict[str, Any]] = None
+    report_url: Optional[str] = None
+
     created_at: datetime
 
     class Config:

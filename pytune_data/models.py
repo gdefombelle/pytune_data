@@ -428,6 +428,9 @@ class PianoIdentificationSession(Model):
     photo_labels = fields.JSONField(null=True)       # Dict[str, str]
     context_snapshot = fields.JSONField(null=True)   # dict
     model_hypothesis = fields.JSONField(null=True)   # dict
+    metadata = fields.JSONField(null=True)   # dict
+    report_url = fields.TextField(null=True)
+    
 
     created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
 
