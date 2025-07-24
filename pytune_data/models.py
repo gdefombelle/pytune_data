@@ -226,21 +226,27 @@ class UserPianoModel(Model):
     user = fields.ForeignKeyField("models.User", related_name="pianos")
     piano_model = fields.ForeignKeyField(
         "models.PianoModel",
-        related_name="user_pianos",
+        related_name="user_pianos_by_model",  # ✅ changé
         null=True,
         db_column="pianomodel_id",
         source_field="pianomodel_id"
     )
     manufacturer = fields.ForeignKeyField(
         "models.Manufacturer",
-        related_name="user_pianos",
+        related_name="user_pianos_by_manufacturer",  # ✅ changé
         null=True,
         db_column="manufacturer_id"
+    )
+    piano_identification_session = fields.ForeignKeyField(
+        "models.PianoIdentificationSession",
+        related_name="user_pianos_by_session",  # ✅ changé
+        null=True,
+        db_column="piano_identification_session_id"
     )
 
     # Info libre utilisateur
     name = fields.CharField(max_length=255, null=True)
-    location = fields.CharField(max_length=255, null=True)
+    location = fields.JSONField(null=True)
     purchase_year = fields.IntField(null=True)
     serial_number = fields.CharField(max_length=255, null=True)
     manufacture_year = fields.IntField(null=True)
@@ -281,6 +287,14 @@ class Session(Model):
                                      related_name='sessions',
                                      null=True,
                                      on_delete=fields.SET_NULL)
+    identification_session = fields.ForeignKeyField(
+        "models.PianoIdentificationSession",
+        related_name="user_pianos",
+        null=True,
+        db_column="piano_identification_session_id",
+        on_delete=fields.SET_NULL
+        )
+
     piano_model = fields.ForeignKeyField("models.PianoModel")
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)

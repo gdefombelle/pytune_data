@@ -99,6 +99,62 @@ class UserPianoModel(BaseModel):
     notes:Optional[str]
 
 
+class UserPianoModelCreate(BaseModel):
+    pianomodel_id: Optional[int]
+    manufacturer_id: Optional[int]
+    name: Optional[str]
+    location: Optional[str]
+    serial_number: Optional[str]
+    manufacture_year: Optional[int]
+    purchase_year: Optional[int]
+    notes: Optional[str]
+    model_name: Optional[str]
+    kind: Optional[str]
+    type_label: Optional[str]
+    size_cm: Optional[float]
+    keys: Optional[int]
+    extra_data: Optional[Dict[str, Any]]
+    piano_identification_session_id: Optional[str]  # UUID
+
+    class Config:
+        from_attributes = True
+
+class UserPianoModelRead(BaseModel):
+    id: int
+    user_id: int
+    pianomodel_id: Optional[int]
+    manufacturer_id: Optional[int]
+
+    name: Optional[str]
+    location: Optional[str]
+    serial_number: Optional[str]
+    manufacture_year: Optional[int]
+    purchase_year: Optional[int]
+    notes: Optional[str]
+
+    model_name: Optional[str]
+    kind: Optional[str]
+    type_label: Optional[str]
+    size_cm: Optional[float]
+    keys: Optional[int]
+
+    llm_description: Optional[str]
+    sound_characteristics: Optional[str]
+    condition_notes: Optional[str]
+
+    maintenance_log: Optional[Dict[str, Any]]
+    custom_data: Optional[Dict[str, Any]]
+    extra_data: Optional[Dict[str, Any]]
+
+    piano_identification_session_id: Optional[str]  # UUID
+    status: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class PianoModelCreate(BaseModel):
     pass
 
