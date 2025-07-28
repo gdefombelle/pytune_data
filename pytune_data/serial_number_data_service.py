@@ -2,6 +2,8 @@ from datetime import datetime
 
 from typing import Optional
 
+from pytune_llm.task_reporting.reporter import TaskReporter
+
 from pytune_data.models import Manufacturer, ManufacturerSerialNumber
 from pytune_data.db import init
 from tortoise.exceptions import DoesNotExist
@@ -19,7 +21,11 @@ async def get_manufacturer_name(manufacturer_id: int) -> Optional[str]:
     except DoesNotExist:
         return None
 
-async def get_serial_number_info(manufacturer_id: int, serial_number: str, max_extrapolation_years: int = 15):
+async def get_serial_number_info(
+        manufacturer_id: int, 
+        serial_number: str, 
+        max_extrapolation_years: int = 15,
+        reporter: Optional[TaskReporter] = None):
     """
     Finds the manufacturing year of a piano based on its serial number.
     
