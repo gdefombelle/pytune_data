@@ -1,5 +1,6 @@
 import asyncio
 from typing import Dict, List, Optional
+from uuid import UUID
 from tortoise import Tortoise
 from tortoise.transactions import in_transaction
 from tortoise.exceptions import DoesNotExist
@@ -8,7 +9,7 @@ from pytune_data.schemas import (
     ManufacturerCreate, ManufacturerSerialNumberCreate, ManufacturerUpdate, ManufacturerInDB,
     PianoModelCreate, PianoModelUpdate, PianoModelInDB, UserManufacturerCreate,)
 from tortoise.queryset import Q
-from pytune_data.db import init, close
+from pytune_data.db import ensure_db_initialized, init, close
 from unidecode import unidecode
 from tortoise.expressions import Q
 from tortoise.functions import Function
@@ -36,8 +37,6 @@ async def get_all_normalized_brands() -> List[str]:
     # rows[1] contient les résultats ; rows[0] est la description
     brand_list = [row[0] for row in rows[1] if row[0]]
     return brand_list
-
-
 
 async def get_manufacturers():
     await init()
@@ -358,3 +357,11 @@ async def get_piano_type_by_category_and_size(
 
     result = await Tortoise.get_connection("default").execute_query(sql, params)
     return result[1][0] if result[1] else None
+
+@ensure_db_initialized
+async def get_upm_by_session(session_id: str, user_id: int) -> Optional[UserPianoModel]:
+    # robuste: on filtre par user + session, et on prend le plus récent
+    return await UserPianoModel.filter(
+        user_id=user_id,
+        piano_identification_session_id=session_id
+    ).order_by("-id").first()

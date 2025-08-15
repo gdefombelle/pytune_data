@@ -13,6 +13,8 @@ from pydantic import BaseModel
 from typing import Optional
 from enum import Enum
 
+from pytune_data.db import init
+
 # PyTune database orm classes and types
 
 class PianoCategoryEnum(IntEnum):
@@ -270,9 +272,17 @@ class UserPianoModel(Model):
     extra_data = fields.JSONField(null=True)
 
     # Métadonnées
+        # 🔗 Lien public de partage
+    public_share_token = fields.CharField(max_length=32, null=True, unique=True)
     status = fields.IntField(default=0)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
+    async def ensure_public_token(self):
+        if not self.public_share_token:
+            self.public_share_token = uuid4().hex[:12]
+            await init()
+            await self.save()
+        return self.public_share_token
 
     class Meta:
         table = "pianomodel_user"
@@ -444,8 +454,9 @@ class PianoIdentificationSession(Model):
     model_hypothesis = fields.JSONField(null=True)   # dict
     metadata = fields.JSONField(null=True)   # dict
     report_url = fields.TextField(null=True)
+    music_sources = fields.JSONField(null=True)
     
-
+    extra_data = fields.JSONField(null=True)      # dict (JSONB)
     created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
 
     class Meta:

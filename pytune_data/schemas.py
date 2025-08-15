@@ -98,6 +98,20 @@ class UserPianoModel(BaseModel):
     purchase_year:Optional[int]
     notes:Optional[str]
 
+class UserPianoPublicView(BaseModel):
+    id: int
+    model_name: Optional[str]
+    manufacturer: Optional[str]
+    serial_number: Optional[str]
+    size_cm: Optional[float]
+    type_label: Optional[str]
+    keys: Optional[int]
+    created_at: datetime
+    pdf_url: Optional[str]
+    music_sources: Optional[List[dict]]
+    visual_insights: Optional[dict]
+    photos: Optional[List[str]]
+
 
 class UserPianoModelCreate(BaseModel):
     pianomodel_id: Optional[int]
@@ -355,7 +369,9 @@ class PianoIdentificationSessionCreate(BaseModel):
     photo_labels: Optional[Dict[str, str]] = None
     context_snapshot: Optional[Dict[str, Any]] = None
     model_hypothesis: Optional[Dict[str, Any]] = None
+    music_sources: Optional[List[Dict[str, Any]]] = None
     report_url: Optional[str] = None
+    extra_data: Optional[Dict[str, Any]] = None
 
 
 class PianoIdentificationSessionRead(BaseModel):
@@ -366,9 +382,11 @@ class PianoIdentificationSessionRead(BaseModel):
     photo_labels: Optional[Dict[str, str]] = None
     context_snapshot: Optional[Dict[str, Any]] = None
     model_hypothesis: Optional[Dict[str, Any]] = None
+    music_sources: Optional[List[Dict[str, Any]]] = None
     metadata: Optional[Dict[str, Any]] = None
     report_url: Optional[str] = None
-
+    public_share_token: Optional[str] = None
+    extra_data: Optional[Dict[str, Any]] = None
     created_at: datetime
 
     class Config:

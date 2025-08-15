@@ -65,3 +65,4 @@ async def get_user_context(user_id: Optional[int] = None, email: Optional[str] =
     )
 
     return user_context
+

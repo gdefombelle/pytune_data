@@ -2,7 +2,7 @@
 
 from tortoise.exceptions import DoesNotExist
 from pytune_data.db import ensure_db_initialized, init
-from pytune_data.models import PianoIdentificationSession
+from pytune_data.models import PianoIdentificationSession, UserPianoModel
 from typing import Optional, List
 from uuid import UUID
 
@@ -52,3 +52,7 @@ async def delete_identification_session(session_id: UUID) -> bool:
         return False
     await session.delete()
     return True
+
+@ensure_db_initialized
+async def get_piano_model_user_by_session_di(session_id:UUID):
+    return await UserPianoModel.get()  
