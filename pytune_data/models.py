@@ -17,10 +17,10 @@ from pytune_data.db import init
 
 # PyTune database orm classes and types
 
-class PianoCategoryEnum(IntEnum):
-    NONE = 0
-    GRAND_PIANO = 1
-    UPRIGHT_PIANO = 2
+# class PianoCategoryEnum(IntEnum):
+#     NONE = 0
+#     GRAND_PIANO = 1
+#     UPRIGHT_PIANO = 2
 
 
 class UserStatusEnum(IntEnum):
@@ -62,6 +62,13 @@ class PianoCategoryEnum(Enum):
     GRAND = 1
     UPRIGHT = 2
     # Ajouter d'autres types si nécessaire
+
+KIND_SYNONYMS = {
+    "grand": PianoCategoryEnum.GRAND,
+    "horizontal": PianoCategoryEnum.GRAND,
+    "upright": PianoCategoryEnum.UPRIGHT,
+    "vertical": PianoCategoryEnum.UPRIGHT,
+}
 
 
 class Manufacturer(Model):
@@ -134,33 +141,52 @@ class PianoSerialCache(Model):
 
     class Meta:
         table = "piano_serial_cache"
+# models/piano_model.py (ou fichier équivalent)
 
 class PianoModel(Model):
     id = fields.IntField(pk=True, autoincrement=True)
     manufacturer = fields.ForeignKeyField("models.Manufacturer", related_name="piano_models")
-    name = fields.CharField(max_length=255)  # Ce champ est obligatoire
-    normalized_name = fields.CharField(max_length=255, null=True)  # Optionnel, calculé par la DB
-    serie = fields.CharField(max_length=255, null=True, default="")  # Champ optionnel
-    kind = fields.IntEnumField(PianoCategoryEnum)  # Champ optionnel avec enum
-    notes = fields.TextField(null=True, default="")  # Champ optionnel
-    width_cm = fields.FloatField(default=0.0)  # Champ optionnel
-    length_cm = fields.FloatField(default=0.0)  # Champ optionnel
-    height_cm = fields.FloatField(default=0.0)  # Champ optionnel
-    weight_kg = fields.FloatField(default=0.0)  # Champ optionnel
-    str_length = fields.CharField(max_length=255, null=True, default="")  # Champ optionnel
-    str_height = fields.CharField(max_length=255, null=True, default="")  # Champ optionnel
-    str_weight = fields.CharField(max_length=255, null=True, default="")  # Champ optionnel
-    keys = fields.IntField(default=88)  # Champ optionnel
-    originated_by = fields.CharField(max_length=255, null=True, default=None)  # Champ optionnel
+    name = fields.CharField(max_length=255)
+    normalized_name = fields.CharField(max_length=255, null=True)
+    serie = fields.CharField(max_length=255, null=True, default="")
+    kind = fields.IntEnumField(PianoCategoryEnum)
+    notes = fields.TextField(null=True, default="")
+    width_cm = fields.FloatField(default=0.0)
+    length_cm = fields.FloatField(default=0.0)
+    height_cm = fields.FloatField(default=0.0)
+    weight_kg = fields.FloatField(default=0.0)
+    str_length = fields.CharField(max_length=255, null=True, default="")
+    str_height = fields.CharField(max_length=255, null=True, default="")
+    str_weight = fields.CharField(max_length=255, null=True, default="")
+    keys = fields.IntField(default=88)
+    originated_by = fields.CharField(max_length=255, null=True, default=None)
     status = fields.IntField(default=0)
-    size = fields.FloatField(default=0.0) 
-    piano_type = fields.ForeignKeyField("models.PianoType", related_name="pianomodel", null=True)  # Association avec piano_types
+
+    # ⬇️ IMPORTANT: aligner avec la colonne de la DB
+    size_cm = fields.FloatField(default=0.0, db_column="size_cm")
+
+    # Si tu avais déjà du code qui lit/écrit .size, garde un alias rétro-compat:
+    @property
+    def size(self) -> float:
+        return self.size_cm or 0.0
+
+    @size.setter
+    def size(self, v: float):
+        self.size_cm = v
+
+    piano_type = fields.ForeignKeyField(
+        "models.PianoType",
+        related_name="pianomodel",
+        null=True
+    )
+
     class Meta:
-        table = "pianomodel"  # Assurez-vous que le nom de la table correspond
-        unique_together = (("name", "originated_by"),)  # Contrainte d'unicité sur le couple name, originated_by
+        table = "pianomodel"
+        unique_together = (("name", "originated_by"),)
 
     def __str__(self):
         return f"{self.name} - {self.manufacturer.company}"
+
 
 class PianoImage(Model):
     id = fields.IntField(pk=True, autoincrement=True)
@@ -221,6 +247,7 @@ class User(Model):
     def __str__(self) -> str:
         return self.first_name
 
+
 class UserPianoModel(Model):
     id = fields.IntField(pk=True)
 
@@ -228,22 +255,22 @@ class UserPianoModel(Model):
     user = fields.ForeignKeyField("models.User", related_name="pianos")
     piano_model = fields.ForeignKeyField(
         "models.PianoModel",
-        related_name="user_pianos_by_model",  # ✅ changé
+        related_name="user_pianos_by_model",
         null=True,
         db_column="pianomodel_id",
-        source_field="pianomodel_id"
+        source_field="pianomodel_id",
     )
     manufacturer = fields.ForeignKeyField(
         "models.Manufacturer",
-        related_name="user_pianos_by_manufacturer",  # ✅ changé
+        related_name="user_pianos_by_manufacturer",
         null=True,
-        db_column="manufacturer_id"
+        db_column="manufacturer_id",
     )
     piano_identification_session = fields.ForeignKeyField(
         "models.PianoIdentificationSession",
-        related_name="user_pianos_by_session",  # ✅ changé
+        related_name="user_pianos_by_session",
         null=True,
-        db_column="piano_identification_session_id"
+        db_column="piano_identification_session_id",
     )
 
     # Info libre utilisateur
@@ -254,39 +281,48 @@ class UserPianoModel(Model):
     manufacture_year = fields.IntField(null=True)
     notes = fields.TextField(null=True)
 
-    # 🎹 Infos piano (extraits, LLM, utilisateur ou auto)
+    # 🎹 Infos piano
     model_name = fields.CharField(max_length=255, null=True)
-    kind = fields.CharField(max_length=50, null=True)  # ex: "grand", "upright"
-    type_label = fields.CharField(max_length=100, null=True)  # ex: "baby grand", "console"
+
+    # ✅ Nouveaux IDs “plats” (pas de FK)
+    kind_id = fields.SmallIntField(null=True, description="1=uprgrand , 2=upright (no FK)")
+    piano_type_id = fields.SmallIntField(
+        null=True,
+        description="1=Spinet, 2=Console, 3=Studio, 4=Full upright, 5=Baby Grand, 6=Medium, 7=Parlor, 8=Music room, 9=Concert (no FK)",
+    )
+
+    # Labels conservés pour l’affichage / compat
+    kind = fields.CharField(max_length=50, null=True)         # "grand" | "upright"
+    type_label = fields.CharField(max_length=100, null=True)  # "baby grand" | "console" | ...
+
     size_cm = fields.FloatField(null=True)
     keys = fields.IntField(null=True)
 
-    # 🧠 Résumé généré ou audio
+    # 🧠 Résumés
     llm_description = fields.TextField(null=True)
     sound_characteristics = fields.TextField(null=True)
     condition_notes = fields.TextField(null=True)
 
-    # 🛠 Logs et extras
+    # 🛠 Extras
     maintenance_log = fields.JSONField(null=True)
     custom_data = fields.JSONField(null=True)
     extra_data = fields.JSONField(null=True)
 
     # Métadonnées
-        # 🔗 Lien public de partage
     public_share_token = fields.CharField(max_length=32, null=True, unique=True)
     status = fields.IntField(default=0)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
+
     async def ensure_public_token(self):
         if not self.public_share_token:
             self.public_share_token = uuid4().hex[:12]
-            await init()
             await self.save()
         return self.public_share_token
 
     class Meta:
         table = "pianomodel_user"
-        unique_together = (("user", "piano_model"),)
+        unique_together = (("user", "piano_model"),)  # on traitera le dédoublonnage “manuel” plus tard
 
     class Config:
         from_attributes = True
@@ -464,3 +500,4 @@ class PianoIdentificationSession(Model):
 
     def __str__(self):
         return f"PianoGuessSession(id={self.id})"
+

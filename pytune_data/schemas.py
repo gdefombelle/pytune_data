@@ -168,6 +168,12 @@ class UserPianoModelRead(BaseModel):
     class Config:
         from_attributes = True
 
+class SaveUserPianoModelOut(BaseModel):
+    success: bool
+    user_piano_id: int                 # 👈 ID du UserPianoModel
+    manufacturer_id: Optional[int] = None
+    pianomodel_id: Optional[int] = None
+    piano_identification_session_id: Optional[UUID] = None
 
 class PianoModelCreate(BaseModel):
     pass
