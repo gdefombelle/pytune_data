@@ -14,7 +14,8 @@ async def create_identification_session(
     photo_metadata: Optional[list] = None,
     context_snapshot: Optional[dict] = None,
     model_hypothesis: Optional[dict] = None,
-    metadata: Optional[dict] = None
+    metadata: Optional[dict] = None,
+    conversation_id: Optional[UUID] = None,
 ) -> PianoIdentificationSession:
     return await PianoIdentificationSession.create(
         user_id=user_id,
@@ -23,7 +24,8 @@ async def create_identification_session(
         photo_metadata=photo_metadata or [],
         context_snapshot=context_snapshot or {},
         model_hypothesis=model_hypothesis or {},
-        metadata=metadata or {}
+        metadata=metadata or {},
+        conversation_id=conversation_id
     )
 
 

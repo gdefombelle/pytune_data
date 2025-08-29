@@ -58,7 +58,7 @@ class UserTypeEnum(IntEnum):
     PROFESSIONNAL = 1
     ADMIN = 99
 
-class PianoCategoryEnum(Enum):
+class PianoCategoryEnum(IntEnum):
     GRAND = 1
     UPRIGHT = 2
     # Ajouter d'autres types si nécessaire
@@ -473,6 +473,24 @@ class TuningSession(Model):
     class Meta:
         table = "tuning_session"
 
+class Conversation(Model):
+    id = fields.UUIDField(pk=True)
+    topic = fields.TextField(null=True)
+    started_at = fields.DatetimeField(null=True)
+    topic_tsv = fields.TextField(null=True)  # Peut être TextField même si c’est un TSVECTOR
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="conversations",
+        null=True,
+        on_delete=fields.SET_NULL
+    )
+
+    class Meta:
+        table = "conversations"
+
+    def __str__(self):
+        return f"Conversation(id={self.id}, topic={self.topic})"
+
 class PianoIdentificationSession(Model):
     id = fields.UUIDField(pk=True, default=uuid4)
     
@@ -482,6 +500,13 @@ class PianoIdentificationSession(Model):
         null=True,
         on_delete=fields.SET_NULL
     )
+    conversation = fields.ForeignKeyField(
+        "models.Conversation",         # nom  du modèle
+        related_name="piano_sessions", # inverse FK 
+        null=True,                     # ✅ rend la FK optionnelle
+        on_delete=fields.SET_NULL      # ✅ comportement doux
+    )
+
 
     image_urls = fields.JSONField(null=True)         # List[str]
     photo_metadata = fields.JSONField(default=list) 

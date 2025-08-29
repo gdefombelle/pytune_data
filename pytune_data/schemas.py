@@ -129,6 +129,9 @@ class UserPianoModelCreate(BaseModel):
     keys: Optional[int]
     extra_data: Optional[Dict[str, Any]]
     piano_identification_session_id: Optional[str]  # UUID
+    conversation_id: Optional[UUID]
+    piano_type_id : Optional[int] = None
+    kind_id :Optional[int] = None
 
     class Config:
         from_attributes = True

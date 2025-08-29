@@ -57,7 +57,9 @@ def resolve_kind_id(kind: Optional[str]) -> Optional[int]:
         return None
     label = kind.strip().lower()
     label = label.replace("piano", "").strip()
-    return KIND_SYNONYMS.get(label)
+    enum_value = KIND_SYNONYMS.get(label)
+    return int(enum_value) if enum_value is not None else None
+
 
 
 def normalize_label(label: str) -> str:

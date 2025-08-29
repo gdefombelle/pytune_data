@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from uuid import uuid4
 from pytune_data import minio_client, PIANO_SESSION_IMAGES_BUCKET
 from pytune_helpers.image_bytes import _sniff_mime_ext, coerce_to_image_bytes
+from simple_logger import logger
 
 
 def upload_generated_image_bytes(raw: object, session_id: str) -> str:
@@ -24,6 +25,7 @@ def upload_generated_image_bytes(raw: object, session_id: str) -> str:
         length=length,
         content_type=mime
     )
+    logger.info(f"🟢 Uploaded image to MinIO: bucket={PIANO_SESSION_IMAGES_BUCKET}, key={fname}")
 
     return f"https://minio.pytune.com/{PIANO_SESSION_IMAGES_BUCKET}/{fname}"
 
