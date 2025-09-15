@@ -2,7 +2,7 @@ from io import BytesIO
 from urllib.parse import urlparse
 from uuid import uuid4
 from pytune_data import minio_client, PIANO_SESSION_IMAGES_BUCKET
-from pytune_helpers.image_bytes import _sniff_mime_ext, coerce_to_image_bytes
+from pytune_helpers_images.image_bytes import _sniff_mime_ext, coerce_to_image_bytes
 from simple_logger import logger
 
 
