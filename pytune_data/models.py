@@ -449,17 +449,53 @@ class ClientAPI(Model):
     def __str__(self):
         return self.client_name
 
-class Diagnosis(Model):
+class DiagnosisSession(Model):
     id = fields.IntField(pk=True)
-    user = fields.ForeignKeyField("models.User", related_name="diagnoses", on_delete=fields.CASCADE)
-    pianomodel_user = fields.ForeignKeyField("models.UserPianoModel", related_name="diagnoses", on_delete=fields.CASCADE)
-    status = fields.IntField(default=0)  # Peut devenir un Enum plus tard
+
+    # 🔑 relation vers User
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="diagnosis_sessions",
+        on_delete=fields.CASCADE
+    )
+
+    # 🔑 relation optionnelle vers le piano concerné
+    pianomodel_user = fields.ForeignKeyField(
+        "models.UserPianoModel",
+        related_name="diagnosis_sessions",
+        on_delete=fields.CASCADE,
+        null=True
+    )
+
+    status = fields.IntField(default=0)
     data = fields.JSONField(null=True)
-    created_at = fields.DatetimeField(auto_now_add=True)
-    updated_at = fields.DatetimeField(auto_now=True)
+
+    created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
+    updated_at = fields.DatetimeField(auto_now=True, timezone=True)
 
     class Meta:
-        table = "diagnosis"
+        table = "diagnosis_session"
+
+
+class DiagnosisNote(Model):
+    id = fields.IntField(pk=True)
+
+    session = fields.ForeignKeyField(
+        "models.DiagnosisSession",
+        related_name="notes",
+        on_delete=fields.CASCADE
+    )
+
+    midi = fields.IntField()
+    freq_detected = fields.FloatField()
+    deviation_cents = fields.FloatField()
+    confidence = fields.FloatField(null=True)
+    inharmonicity = fields.FloatField(null=True)
+
+    created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
+
+    class Meta:
+        table = "diagnosis_note"
 
 class TuningSession(Model):
     id = fields.IntField(pk=True)

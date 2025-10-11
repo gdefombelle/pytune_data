@@ -1,6 +1,8 @@
 from typing import Optional, List
 from datetime import datetime
-from pytune_data.models import User, UserContext, UserPianoModel, UserTypeEnum, Diagnosis, TuningSession
+
+from pytune_data.models import User, UserContext, UserPianoModel, UserTypeEnum, TuningSession,DiagnosisSession, DiagnosisNote
+
 from pytune_data.db import init
 from simple_logger.logger import get_logger, SimpleLogger
 
@@ -37,7 +39,7 @@ async def get_user_context(user_id: Optional[int] = None, email: Optional[str] =
         for piano in pianos
     ]
 
-    last_diagnosis = await Diagnosis.filter(user_id=user.id).order_by("-created_at").first()
+    last_diagnosis = await DiagnosisSession.filter(user_id=user.id).order_by("-created_at").first()
     last_tuning = await TuningSession.filter(user_id=user.id).order_by("-created_at").first()
 
     # 🌟 Extraire le profil musical depuis extra_data (si présent)
