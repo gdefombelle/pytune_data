@@ -2,7 +2,7 @@
 from uuid import UUID
 from pydantic import BaseModel, EmailStr, Field
 from typing import Any, Dict, List, Optional, Union
-from pytune_data.models import ManufacturerStatus, PianoCategoryEnum, UserStatusEnum, ClientStatusEnum, UserTypeEnum
+from pytune_data.models import DiagnosisSessionStatus, ManufacturerStatus, PianoCategoryEnum, UserStatusEnum, ClientStatusEnum, UserTypeEnum
 from datetime import datetime
 
 class PianoManufacturer(BaseModel):
@@ -336,22 +336,28 @@ class ClientAPIUpdate(BaseModel):
     grant_types: Optional[str]
     token_endpoint_auth_method: Optional[str]
 
-class DiagnosisBase(BaseModel):
-    user_id: int
-    pianomodel_user_id: int
-    status: int = 0
+class CreateSessionRequest(BaseModel):
+    pianomodel_user_id: Optional[int] = None
     data: Optional[dict] = None
 
-class DiagnosisCreate(DiagnosisBase):
-    pass
 
-class DiagnosisInDB(DiagnosisBase):
-    id: int
-    created_at: datetime
-    updated_at: datetime
+class UpdateSessionStatusRequest(BaseModel):
+    status: DiagnosisSessionStatus
+    data: Optional[dict] = None
 
-    class Config:
-        from_attributes = True
+
+class AddNoteRequest(BaseModel):
+    midi: int
+    freq_detected: float
+    deviation_cents: float
+    confidence: Optional[float] = None
+    inharmonicity: Optional[float] = None  # ex: avg_inh
+    B_estimate: Optional[float] = None
+    partials: Optional[list[float]] = None
+    inharmonicity_curve: Optional[list[float]] = None
+    spectral_fingerprint: Optional[list[float]] = None
+    unison: Optional[dict] = None
+
 
 class TuningSessionBase(BaseModel):
     user_id: int

@@ -63,6 +63,13 @@ class PianoCategoryEnum(IntEnum):
     UPRIGHT = 2
     # Ajouter d'autres types si nécessaire
 
+class DiagnosisSessionStatus(IntEnum):
+    CREATED = 0        # juste créée, pas encore démarrée
+    RUNNING = 1        # en cours (notes qui arrivent)
+    FINISHED = 2       # terminée proprement
+    CANCELLED = 3      # annulée par l'utilisateur
+    ERROR = 99         # plantée / interrompue
+
 KIND_SYNONYMS = {
     "grand": PianoCategoryEnum.GRAND,
     "horizontal": PianoCategoryEnum.GRAND,
@@ -467,7 +474,7 @@ class DiagnosisSession(Model):
         null=True
     )
 
-    status = fields.IntField(default=0)
+    status = fields.IntEnumField(DiagnosisSessionStatus, default=DiagnosisSessionStatus.CREATED)
     data = fields.JSONField(null=True)
 
     created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
@@ -476,21 +483,39 @@ class DiagnosisSession(Model):
     class Meta:
         table = "diagnosis_session"
 
-
 class DiagnosisNote(Model):
     id = fields.IntField(pk=True)
 
     session = fields.ForeignKeyField(
         "models.DiagnosisSession",
         related_name="notes",
-        on_delete=fields.CASCADE
+        on_delete=fields.CASCADE,
     )
 
+    # --- Info de base ---
     midi = fields.IntField()
-    freq_detected = fields.FloatField()
+    f0 = fields.FloatField()
     deviation_cents = fields.FloatField()
     confidence = fields.FloatField(null=True)
+
+    # --- Inharmonicité globale (ex: moyenne) ---
     inharmonicity = fields.FloatField(null=True)
+
+    # --- Coefficient B estimé pour cette note ---
+    B_estimate = fields.FloatField(null=True)
+
+    # --- Détail harmonique (pour analyse scientifique / fingerprint) ---
+    # Liste des fréquences de partiels, ex: [f1, f2, f3, ...]
+    partials = fields.JSONField(null=True)
+
+    # Courbe d’inharmonicité par partiel, ex: [inh1, inh2, ...]
+    inharmonicity_curve = fields.JSONField(null=True)
+
+    # Empreinte spectrale compacte (vectorisée), ex: [0.12, 0.87, ...]
+    spectral_fingerprint = fields.JSONField(null=True)
+
+    # --- Analyse d'unisson (structure JSON venant du backend) ---
+    unison = fields.JSONField(null=True)
 
     created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
 
