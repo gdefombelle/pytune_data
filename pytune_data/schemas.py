@@ -347,8 +347,9 @@ class UpdateSessionStatusRequest(BaseModel):
 
 
 class AddNoteRequest(BaseModel):
+    note_name: Optional[str] = None
     midi: int
-    freq_detected: float
+    f0: float
     deviation_cents: float
     confidence: Optional[float] = None
     inharmonicity: Optional[float] = None  # ex: avg_inh

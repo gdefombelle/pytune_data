@@ -493,6 +493,7 @@ class DiagnosisNote(Model):
     )
 
     # --- Info de base ---
+    note_name = fields.CharField(max_length=16)
     midi = fields.IntField()
     f0 = fields.FloatField()
     deviation_cents = fields.FloatField()
