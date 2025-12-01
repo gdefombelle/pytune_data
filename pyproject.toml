@@ -2,7 +2,7 @@
 name = "pytune_data"
 version = "0.0.0"
 description = "PyTune shared data models"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 
 [tool.poetry]
 name = "pytune_data"
@@ -15,7 +15,7 @@ repository = "https://github.com/gdefombelle/pytune_data"
 packages = [{ include = "pytune_data" }]
 
 [tool.poetry.dependencies]
-python = ">=3.12,<4.0"
+python = ">=3.12,<3.13"
 
 setuptools = "*"
 tortoise-orm = "*"
