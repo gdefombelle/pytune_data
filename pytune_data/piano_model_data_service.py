@@ -1,5 +1,8 @@
 import re
 from typing import Optional, Set
+from unidecode import unidecode
+from typing import Optional
+from pytune_data.db import init
 from pytune_data.models import KIND_SYNONYMS, PianoModel, PianoType
 
 
@@ -101,3 +104,73 @@ async def resolve_piano_type_id(
             return pt.id
 
     return None
+
+async def create_piano_model_from_llm(
+    *,
+    manufacturer_id: int,
+    model_name: str,
+    kind_label: Optional[str],
+    size_cm: Optional[int],
+    piano_type_label: Optional[str] = None,
+    notes: Optional[str] = None,
+    originated_by: str = "llm",
+) -> PianoModel:
+    """
+    Create a PianoModel entry from LLM-resolved data.
+    """
+
+    await init()
+
+    # ─────────────────────────────────────────────
+    # Normalize model name
+    # ─────────────────────────────────────────────
+    normalized_name = normalize_label(unidecode(model_name))
+
+    # ─────────────────────────────────────────────
+    # Resolve kind (category)
+    # ─────────────────────────────────────────────
+    kind_id = resolve_kind_id(kind_label)
+
+    # ─────────────────────────────────────────────
+    # Normalize size (INT, SAFE)
+    # ─────────────────────────────────────────────
+    size_cm_int: int = int(size_cm) if size_cm is not None else 0
+
+    # ─────────────────────────────────────────────
+    # Resolve piano_type_id (label > size)
+    # ─────────────────────────────────────────────
+    piano_type_id = await resolve_piano_type_id(
+        kind_id=kind_id,
+        piano_type_label=piano_type_label,
+        size_cm=size_cm_int,
+    )
+
+    # ─────────────────────────────────────────────
+    # Map size to physical dimensions
+    # ─────────────────────────────────────────────
+    length_cm = 0
+    height_cm = 0
+
+    if kind_id == 1 and size_cm_int > 0:       # grand
+        length_cm = size_cm_int
+    elif kind_id == 2 and size_cm_int > 0:     # upright
+        height_cm = size_cm_int
+
+    # ─────────────────────────────────────────────
+    # Create DB object
+    # ─────────────────────────────────────────────
+    db_model = PianoModel(
+        manufacturer_id=manufacturer_id,
+        name=model_name,
+        normalized_name=normalized_name,
+        kind=kind_id,
+        size_cm=size_cm_int,
+        length_cm=length_cm,
+        height_cm=height_cm,
+        piano_type_id=piano_type_id,
+        notes=notes or "",
+        originated_by=originated_by,
+    )
+
+    await db_model.save()
+    return db_model

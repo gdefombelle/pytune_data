@@ -58,3 +58,19 @@ async def delete_identification_session(session_id: UUID) -> bool:
 @ensure_db_initialized
 async def get_piano_model_user_by_session_di(session_id:UUID):
     return await UserPianoModel.get()  
+
+def extract_beautified_image_url(session: PianoIdentificationSession | None) -> str | None:
+    if not session:
+        return None
+
+    extra = session.extra_data or {}
+    images = extra.get("beautified_images") or []
+
+    if not images:
+        return None
+
+    first = images[0]
+    if isinstance(first, dict):
+        return first.get("url")
+
+    return None

@@ -211,13 +211,13 @@ class UserBase(BaseModel):
 class UserCreateSchema(BaseModel):
     email: EmailStr
     password: str
-    first_name: Optional[str]
-    last_name: Optional[str]
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     business_name : Optional[str] = None
     location: Optional[str] = None
     location_details:  Optional[Dict[str, str]] = None
     country: Optional[str] = None
-    phone_number: Optional[str] 
+    phone_number: Optional[str] = None
     website : Optional[str] = None
     history : Optional[Dict[str, Optional[str]]] = {}
     social_networks: Optional[str] = None
@@ -234,6 +234,7 @@ class UserCreateSchema(BaseModel):
 class UserUpdate(BaseModel):
     username: Optional[str] = Field(None, max_length=255)
     email: Optional[EmailStr] = None
+    oauth_provider : Optional[str] = None
     phone_number: Optional[str] = Field(None, max_length=20)
     first_name: Optional[str] = Field(None, max_length=255)
     last_name: Optional[str] = Field(None, max_length=255)
@@ -258,7 +259,8 @@ class UserUpdate(BaseModel):
     class Config:
         from_attributes = True
 
-
+class UserEmailUpdateSchema(BaseModel):
+    email: EmailStr
 
 class OnlineUserPydantic(BaseModel):
     user_email: EmailStr

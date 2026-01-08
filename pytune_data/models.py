@@ -24,8 +24,9 @@ from pytune_data.db import init
 
 
 class UserStatusEnum(IntEnum):
-    PENDING = 1
-    EMAIL_CONFIRMED = 2
+    PENDING = 1                 # signup fait, email envoyé
+    EMAIL_CONFIRMED = 2         # lien validé
+    EMAIL_BOUNCED = 3           # ❌ adresse invalide (bounce)
     REVOKED = 99
 
 class ManufacturerStatus(IntEnum):
@@ -152,34 +153,40 @@ class PianoSerialCache(Model):
 
 class PianoModel(Model):
     id = fields.IntField(pk=True, autoincrement=True)
-    manufacturer = fields.ForeignKeyField("models.Manufacturer", related_name="piano_models")
+
+    manufacturer = fields.ForeignKeyField(
+        "models.Manufacturer", related_name="piano_models"
+    )
+
     name = fields.CharField(max_length=255)
     normalized_name = fields.CharField(max_length=255, null=True)
     serie = fields.CharField(max_length=255, null=True, default="")
     kind = fields.IntEnumField(PianoCategoryEnum)
     notes = fields.TextField(null=True, default="")
+
     width_cm = fields.FloatField(default=0.0)
     length_cm = fields.FloatField(default=0.0)
     height_cm = fields.FloatField(default=0.0)
     weight_kg = fields.FloatField(default=0.0)
+
     str_length = fields.CharField(max_length=255, null=True, default="")
     str_height = fields.CharField(max_length=255, null=True, default="")
     str_weight = fields.CharField(max_length=255, null=True, default="")
+
     keys = fields.IntField(default=88)
     originated_by = fields.CharField(max_length=255, null=True, default=None)
     status = fields.IntField(default=0)
 
-    # ⬇️ IMPORTANT: aligner avec la colonne de la DB
-    size_cm = fields.FloatField(default=0.0, db_column="size_cm")
+    # ✅ ALIGNÉ DB / ORM
+    size_cm = fields.IntField(default=0, db_column="size_cm")
 
-    # Si tu avais déjà du code qui lit/écrit .size, garde un alias rétro-compat:
     @property
-    def size(self) -> float:
-        return self.size_cm or 0.0
+    def size(self) -> int:
+        return self.size_cm or 0
 
     @size.setter
-    def size(self, v: float):
-        self.size_cm = v
+    def size(self, v: int):
+        self.size_cm = int(v)
 
     piano_type = fields.ForeignKeyField(
         "models.PianoType",
@@ -193,7 +200,6 @@ class PianoModel(Model):
 
     def __str__(self):
         return f"{self.name} - {self.manufacturer.company}"
-
 
 class PianoImage(Model):
     id = fields.IntField(pk=True, autoincrement=True)

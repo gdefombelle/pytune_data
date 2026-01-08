@@ -3,9 +3,10 @@ from urllib.parse import urlparse
 from uuid import uuid4
 from pytune_data import minio_client, PIANO_SESSION_IMAGES_BUCKET
 from pytune_helpers_images.image_bytes import _sniff_mime_ext, coerce_to_image_bytes
-from simple_logger import logger
+from simple_logger.logger import SimpleLogger, get_logger
 
 
+logger :SimpleLogger = get_logger()
 def upload_generated_image_bytes(raw: object, session_id: str) -> str:
     """
     Conformité MinIO: client.put_object(bucket, fname, stream, length=..., content_type=...).

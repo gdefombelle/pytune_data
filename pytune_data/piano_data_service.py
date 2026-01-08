@@ -288,6 +288,33 @@ async def update_manufacturer(manufacturer_id: int, manufacturer: ManufacturerUp
     await db_manufacturer.save()
     return ManufacturerInDB.model_validate(db_manufacturer)
 
+async def create_piano_model(
+    piano_model: PianoModelCreate,
+    email: Optional[str] = None,
+) -> PianoModelInDB:
+    """
+    Create a piano model in database.
+    Typically used when the model has been resolved via LLM.
+
+    - Normalizes name automatically (via model / ORM logic if present)
+    - Marks originated_by = 'llm' or user email if provided
+    """
+
+    await init()
+
+    data = piano_model.model_dump()
+
+    # Ensure origin tracking
+    if "originated_by" not in data or not data["originated_by"]:
+        data["originated_by"] = email or "llm"
+
+    db_piano_model = PianoModel(**data)
+    await db_piano_model.save()
+
+    # Convert to schema
+    piano_model_dict = db_piano_model.__dict__
+    return PianoModelInDB(**piano_model_dict)
+
 async def update_piano_model(piano_model_id: int, piano_model: PianoModelUpdate) -> PianoModelInDB:
     await init()
     db_piano_model = await PianoModel.get(id=piano_model_id)
