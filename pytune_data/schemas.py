@@ -277,6 +277,37 @@ class UserInDB(UserBase):
     last_connection: Optional[datetime] = None
     user_type: UserTypeEnum
     status:UserStatusEnum
+    # 🧾 Subscription (NOUVEAU)
+    plan_code: str
+    role: str
+
+    class Config:
+        from_attributes = True
+
+class UserEntitlementSchema(BaseModel):
+    entitlement: str
+    source: str
+
+    class Config:
+        from_attributes = True
+
+class UserQuotaSchema(BaseModel):
+    quota_key: str
+    limit_value: int
+    used_value: int
+
+    @property
+    def remaining(self) -> int:
+        return max(self.limit_value - self.used_value, 0)
+
+    class Config:
+        from_attributes = True
+
+class UserSubscriptionSchema(BaseModel):
+    plan_code: str
+    role: str
+    entitlements: List[str]
+    quotas: Dict[str, UserQuotaSchema]
 
     class Config:
         from_attributes = True

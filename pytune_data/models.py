@@ -8,7 +8,7 @@ from enum import IntEnum
 import json
 import numpy as np
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel
 from typing import Optional
 from enum import Enum
@@ -214,29 +214,43 @@ class PianoImage(Model):
 
     class Meta:
         table = "piano_images"
-
 class User(Model):
     id = fields.IntField(pk=True, autoincrement=True)
+
+    # Relations existantes
     pianos = fields.ReverseRelation["UserPianoModel"]
     sessions = fields.ReverseRelation["Session"]
 
+    # Auth / identité
     username = fields.CharField(max_length=255, unique=True, index=True)
     email = fields.CharField(max_length=255, unique=True, index=True)
     phone_number = fields.CharField(max_length=20, null=True)
     password = fields.CharField(max_length=255)
+
     status = fields.IntEnumField(UserStatusEnum)
     client_status = fields.IntEnumField(ClientStatusEnum)
+    user_type = fields.IntEnumField(UserTypeEnum, default=UserTypeEnum.INDIVIDUAL)
+
     first_name = fields.CharField(max_length=255, null=True)
     last_name = fields.CharField(max_length=255, null=True)
+
+    # 🌍 Locale
     language = fields.CharField(max_length=8, default='en')
     timezone = fields.CharField(max_length=50, default='UTC')
     country = fields.CharField(max_length=50, null=True)
+
+    # 🕒 Dates
     created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
     updated_at = fields.DatetimeField(auto_now=True, timezone=True)
     last_connection = fields.DatetimeField(null=True, timezone=True)
-    user_type = fields.IntEnumField(UserTypeEnum, default=UserTypeEnum.INDIVIDUAL)
 
-    # Champs supplémentaires
+    # 🧾 Abonnement (NOUVEAU)
+    plan_code = fields.CharField(max_length=50, default="freemium")
+    role = fields.CharField(max_length=50, default="individual")
+    plan_started_at = fields.DatetimeField(auto_now_add=True)
+    plan_ends_at = fields.DatetimeField(null=True)
+
+    # 🧑‍🔧 Profil pro / extended
     location = fields.CharField(max_length=500, null=True)
     location_details = fields.JSONField(null=True)
     services_offered = fields.JSONField(null=True)
@@ -247,19 +261,27 @@ class User(Model):
     social_networks = fields.TextField(null=True)
     oauth_provider = fields.TextField(null=True)
 
+    # ✅ Legal
     accepted_tos = fields.BooleanField(default=False)
     accepted_tos_at = fields.DatetimeField(null=True, timezone=True)
     accepted_privacy_policy = fields.BooleanField(default=False)
     accepted_privacy_policy_at = fields.DatetimeField(null=True, timezone=True)
+
     extra_data = fields.JSONField(null=True)
-    class Config:
-        from_attributes = True
+
+    # 🔐 RBAC / Subscription (relations inverses)
+    entitlements: fields.ReverseRelation["UserEntitlement"]
+    quotas: fields.ReverseRelation["UserQuota"]
+    plan_history: fields.ReverseRelation["UserPlanHistory"]
+
     class Meta:
         table = 'users'
 
-    def __str__(self) -> str:
-        return self.first_name
+    class Config:
+        from_attributes = True
 
+    def __str__(self) -> str:
+        return self.first_name or self.email
 
 class UserPianoModel(Model):
     id = fields.IntField(pk=True)
@@ -412,30 +434,114 @@ class OnlineUser(Model):
     class Config:
         from_attributes = True        
 
+class UserQuotaContext(BaseModel):
+    limit: int
+    used: int
+    remaining: int
+
+
 class UserContext(BaseModel):
+    # --- Identité légère ---
     firstname: str
-    form_completed: bool
-    pianos: List[dict]  # ou une structure plus précise
-    last_diagnosis_exists: bool
-    tuning_session_exists: bool
     language: str = "en"
     last_login: datetime
-    subscription_level: str
 
-    # Nouvel espace "profil musical émotionnel"
+    # --- Etat produit ---
+    form_completed: bool
+    pianos: List[dict]
+    last_diagnosis_exists: bool
+    tuning_session_exists: bool
+
+    # --- 🧾 Subscription / RBAC (NOUVEAU 🔑) ---
+    plan_code: str                 # freemium | indy | pro
+    role: str                      # individual | professional | admin
+    entitlements: List[str]        # ["piano.create", "diagnosis.basic", ...]
+    quotas: Dict[str, UserQuotaContext]  # {"pianos": {...}}
+
+    # ⚠️ temporaire (à déprécier)
+    subscription_level: Optional[str] = None
+
+    # --- 🎼 Profil musical / émotionnel ---
     piano_years_playing: Optional[int] = None
-    piano_study_started_as: Optional[str] = None  # "Child", "Adult", "Self-taught"
-    music_styles: Optional[List[str]] = []
-    favorite_composers: Optional[List[str]] = []
-    favorite_performers: Optional[List[str]] = []
+    piano_study_started_as: Optional[str] = None  # Child | Adult | Self-taught
+    music_styles: Optional[List[str]] = None
+    favorite_composers: Optional[List[str]] = None
+    favorite_performers: Optional[List[str]] = None
     current_piece: Optional[str] = None
     piano_satisfaction: Optional[str] = None
     wishes_to_change_piano: Optional[bool] = None
 
     class Config:
         from_attributes = True
-        arbitrary_types_allowed = True 
-        
+        arbitrary_types_allowed = True     
+
+class UserEntitlement(Model):
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="entitlements",
+        on_delete=fields.CASCADE,
+        pk=True,                # ✅ PK ORM (porteuse)
+    )
+
+    entitlement = fields.CharField(
+        max_length=100,
+    )
+
+    source = fields.CharField(max_length=50, default="plan")
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "user_entitlements"
+        unique_together = (("user", "entitlement"),)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.entitlement}"
+
+class UserQuota(Model):
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="quotas",
+        on_delete=fields.CASCADE,
+        pk=True,                # ✅ PK ORM
+    )
+
+    quota_key = fields.CharField(
+        max_length=50,
+    )
+
+    limit_value = fields.IntField()
+    used_value = fields.IntField(default=0)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "user_quotas"
+        unique_together = (("user", "quota_key"),)
+
+    def remaining(self) -> int:
+        return max(self.limit_value - self.used_value, 0)
+
+    def __str__(self):
+        return f"{self.user_id}:{self.quota_key}={self.used_value}/{self.limit_value}"
+
+class UserPlanHistory(Model):
+    id = fields.IntField(pk=True, autoincrement=True)
+
+    user = fields.ForeignKeyField(
+        "models.User",
+        related_name="plan_history",
+        on_delete=fields.CASCADE
+    )
+
+    plan_code = fields.CharField(max_length=50)
+    started_at = fields.DatetimeField(auto_now_add=True)
+    ended_at = fields.DatetimeField(null=True)
+
+    class Meta:
+        table = "user_plan_history"
+
+    def __str__(self):
+        return f"{self.user_id}:{self.plan_code}"
+
 class ClientAPI(Model):
     """
     Modèle représentant les clients d'API pour le système d'autorisation OAuth.

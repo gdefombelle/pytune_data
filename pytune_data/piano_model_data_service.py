@@ -68,6 +68,26 @@ def resolve_kind_id(kind: Optional[str]) -> Optional[int]:
 def normalize_label(label: str) -> str:
     return label.strip().lower().replace("-", " ")
 
+import re
+from unidecode import unidecode
+
+def normalize_piano_model_name(name: str) -> str:
+    """
+    Normalize a piano model name for DB matching.
+    Examples:
+      'CX-3'   -> 'cx3'
+      'C 3 X'  -> 'c3x'
+      'b-211'  -> 'b211'
+      'U1 H'   -> 'u1h'
+    """
+    if not name:
+        return ""
+
+    s = unidecode(name)
+    s = s.lower()
+    s = re.sub(r'[^a-z0-9]', '', s)  # 🔑 supprime TOUT sauf lettres/chiffres
+    return s
+
 
 async def resolve_piano_type_id(
     kind_id: Optional[int],
@@ -121,15 +141,27 @@ async def create_piano_model_from_llm(
 
     await init()
 
+
     # ─────────────────────────────────────────────
     # Normalize model name
     # ─────────────────────────────────────────────
-    normalized_name = normalize_label(unidecode(model_name))
+    normalized_name = normalize_piano_model_name(model_name)
+    display_name = model_name.strip().upper()
+
 
     # ─────────────────────────────────────────────
     # Resolve kind (category)
     # ─────────────────────────────────────────────
     kind_id = resolve_kind_id(kind_label)
+    
+    existing = await PianoModel.filter(
+            manufacturer_id=manufacturer_id,
+            normalized_name=normalized_name,
+            kind=kind_id,
+        ).first()
+
+    if existing:
+        return existing
 
     # ─────────────────────────────────────────────
     # Normalize size (INT, SAFE)
@@ -161,7 +193,7 @@ async def create_piano_model_from_llm(
     # ─────────────────────────────────────────────
     db_model = PianoModel(
         manufacturer_id=manufacturer_id,
-        name=model_name,
+        name=display_name,
         normalized_name=normalized_name,
         kind=kind_id,
         size_cm=size_cm_int,
