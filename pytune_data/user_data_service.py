@@ -9,7 +9,7 @@ from pytune_data.models import (
     TuningSession,
     DiagnosisSession,
 )
-from pytune_data.services.subscription import get_user_subscription
+from pytune_data.services.subscription import get_user_subscription_snapshot
 from pytune_data.db import init
 from simple_logger.logger import get_logger, SimpleLogger
 
@@ -68,7 +68,7 @@ async def get_user_context(
     extra = user.extra_data or {}
 
     # 🔑 --- SUBSCRIPTION SNAPSHOT ---
-    subscription = await get_user_subscription(user)
+    subscription = await get_user_subscription_snapshot(user)
 
     # 🧾 quotas → UserQuotaContext (STRICT TYPING)
     quotas_ctx: Dict[str, UserQuotaContext] = {

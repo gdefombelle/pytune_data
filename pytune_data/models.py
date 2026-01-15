@@ -498,16 +498,15 @@ class UserEntitlement(Model):
         return f"{self.user_id}:{self.entitlement}"
 
 class UserQuota(Model):
+    id = fields.IntField(pk=True)  # ✅ PK technique ORM
+
     user = fields.ForeignKeyField(
         "models.User",
         related_name="quotas",
         on_delete=fields.CASCADE,
-        pk=True,                # ✅ PK ORM
     )
 
-    quota_key = fields.CharField(
-        max_length=50,
-    )
+    quota_key = fields.CharField(max_length=50)
 
     limit_value = fields.IntField()
     used_value = fields.IntField(default=0)
@@ -518,7 +517,7 @@ class UserQuota(Model):
         unique_together = (("user", "quota_key"),)
 
     def remaining(self) -> int:
-        return max(self.limit_value - self.used_value, 0)
+        return -1 if self.limit_value == -1 else max(self.limit_value - self.used_value, 0)
 
     def __str__(self):
         return f"{self.user_id}:{self.quota_key}={self.used_value}/{self.limit_value}"

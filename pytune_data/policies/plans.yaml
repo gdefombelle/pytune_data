@@ -1,0 +1,73 @@
+plans:
+
+  freemium:
+    label: Free
+    role: individual
+    quotas:
+      pianos: 1
+      photos_per_piano: 4
+      diagnostics_per_month: unlimited
+    features:
+      pwa: true
+      pytuner: true
+      pdf_reports: false
+    ui:
+      show_add_piano: false
+
+  indy:
+    label: Indy
+    role: individual
+    price:
+      monthly: 2.50
+      yearly: 25
+    quotas:
+      pianos: 1
+    features:
+      pytuner: true
+      pdf_reports: true
+      ads: false
+
+  indy_plus:
+    label: Indy+
+    role: individual
+    quotas:
+      pianos: 3
+    features:
+      pytuner: true
+      pdf_reports: premium
+      value_estimation: true
+      priority_support: true
+
+  pro:
+    label: Pro
+    role: professional
+    quotas:
+      pianos: unlimited
+      clients: unlimited
+    features:
+      branded_reports: true
+      dashboard: true
+      receive_free_diagnostics: true
+
+  pro_plus:
+    label: Pro+
+    role: professional
+    features:
+      white_label: true
+      team_access: true
+
+  community:
+    label: Faith & Harmony
+    role: org
+    price: free_upon_approval
+    features:
+      ads: false
+      unlimited_pianos: true
+
+  enterprise:
+    label: Enterprise
+    role: partner
+    pricing: custom
+    features:
+      api: unlimited
+      white_label: true

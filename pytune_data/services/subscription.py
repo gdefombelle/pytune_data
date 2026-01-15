@@ -1,4 +1,5 @@
 from typing import Dict, List
+from pytune_data.db import init
 
 from pytune_data.models import (
     User,
@@ -22,7 +23,7 @@ class UserSubscriptionSnapshot(BaseModel):
         arbitrary_types_allowed = True  # autorise les modèles Tortoise
 
 
-async def get_user_subscription(user: User) -> UserSubscriptionSnapshot:
+async def get_user_subscription_snapshot(user: User) -> UserSubscriptionSnapshot:
     """
     Retourne l'état subscription courant d'un utilisateur.
 
@@ -30,7 +31,7 @@ async def get_user_subscription(user: User) -> UserSubscriptionSnapshot:
     - Aucune logique de plan
     - Lecture DB uniquement
     """
-
+    await init()
     # --- entitlements ---
     raw_entitlements = await UserEntitlement.filter(user=user) \
     .values_list("entitlement", flat=True)
