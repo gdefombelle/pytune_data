@@ -15,6 +15,7 @@ from tortoise.expressions import Q
 from tortoise.functions import Function
 from rapidfuzz.fuzz import partial_ratio
 from tortoise import Tortoise
+from pytune_data.models import PianoCategoryEnum
 
 
 
@@ -227,7 +228,6 @@ async def create_user_manufacturer(manufacturer: UserManufacturerCreate) -> Manu
     manufacturer_in_db =  ManufacturerInDB(**manufacturer_dict)
     return manufacturer_in_db
 
-
 async def create_user_piano_model(piano_model: PianoModelCreate, email:str = None) -> PianoModelInDB:
     await init()
     db_piano_model = PianoModel(**piano_model.model_dump())
@@ -392,3 +392,47 @@ async def get_upm_by_session(session_id: str, user_id: int) -> Optional[UserPian
         user_id=user_id,
         piano_identification_session_id=session_id
     ).order_by("-id").first()
+
+# pytune_data/piano_model_data_service.py
+
+@ensure_db_initialized
+async def get_similar_models(
+    manufacturer_id: int,
+    category: str,     # "grand" ou "upright"
+    size_cm: int,
+    tolerance_percent: float = 0.05 # 5% de marge
+) -> list[dict]:
+    """
+    Trouve les modèles candidats dans la DB basés sur la taille physique.
+    Version Tortoise ORM 🐢
+    """
+    if not size_cm or not category:
+        return []
+
+    # 1. Mapping du string vers l'Enum (1=Grand, 2=Upright)
+    category_lower = category.lower()
+    kind_val = None
+    
+    if "grand" in category_lower:
+        kind_val = PianoCategoryEnum.GRAND
+    elif "upright" in category_lower:
+        kind_val = PianoCategoryEnum.UPRIGHT
+        
+    if kind_val is None:
+        return []
+
+    # 2. Calcul de la fourchette
+    min_size = int(size_cm * (1 - tolerance_percent))
+    max_size = int(size_cm * (1 + tolerance_percent))
+
+    # 3. Requête Tortoise ORM
+    # On cherche les modèles de la même marque, même type, et dans la fourchette de taille
+    candidates = await PianoModel.filter(
+        manufacturer_id=manufacturer_id,
+        kind=kind_val,
+        size_cm__gte=min_size, # >= min
+        size_cm__lte=max_size  # <= max
+    ).values("name", "size_cm", "notes") # On ne récupère que ces champs (léger)
+
+    # candidates est déjà une liste de dicts grâce à .values()
+    return candidates
