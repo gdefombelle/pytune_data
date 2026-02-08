@@ -395,24 +395,42 @@ async def get_upm_by_session(session_id: str, user_id: int) -> Optional[UserPian
 
 # pytune_data/piano_model_data_service.py
 
-@ensure_db_initialized
+from typing import List, Dict, Any, Optional
+from pytune_data.models import PianoModel, PianoCategoryEnum
+
+# Mapping pour convertir la string "vision" en Enum DB
+KIND_MAP_REVERSE: Dict[str, PianoCategoryEnum] = {
+    "grand": PianoCategoryEnum.GRAND,
+    "upright": PianoCategoryEnum.UPRIGHT,
+}
+
 async def get_similar_models(
     manufacturer_id: int,
     category: str,     # "grand" ou "upright"
     size_cm: int,
-    tolerance_percent: float = 0.05 # 5% de marge
-) -> list[dict]:
+    tolerance_percent: float = 0.06 # 6% est un bon compromis
+) -> List[Dict[str, Any]]:
     """
-    Trouve les modèles candidats dans la DB basés sur la taille physique.
-    Version Tortoise ORM 🐢
+    Recherche les modèles candidats dans la base PyTune.
+    Utilise Tortoise ORM pour une requête optimisée.
+    
+    Args:
+        manufacturer_id: ID du fabricant
+        category: "grand" ou "upright" (venant de l'agent Vision)
+        size_cm: Taille estimée ou mesurée
+        tolerance_percent: Marge d'erreur (0.06 = +/- 6%)
+        
+    Returns:
+        Liste de dictionnaires légers pour le contexte LLM.
     """
     if not size_cm or not category:
         return []
 
-    # 1. Mapping du string vers l'Enum (1=Grand, 2=Upright)
+    # 1. Conversion String -> Enum (Type Safe)
     category_lower = category.lower()
-    kind_val = None
+    kind_val: Optional[PianoCategoryEnum] = None
     
+    # On cherche une correspondance partielle (ex: "baby grand" -> GRAND)
     if "grand" in category_lower:
         kind_val = PianoCategoryEnum.GRAND
     elif "upright" in category_lower:
@@ -421,18 +439,18 @@ async def get_similar_models(
     if kind_val is None:
         return []
 
-    # 2. Calcul de la fourchette
+    # 2. Calcul des bornes (Cast explicite en int pour la DB)
     min_size = int(size_cm * (1 - tolerance_percent))
     max_size = int(size_cm * (1 + tolerance_percent))
 
     # 3. Requête Tortoise ORM
-    # On cherche les modèles de la même marque, même type, et dans la fourchette de taille
+    # .values() est crucial ici pour ne pas charger les objets lourds
     candidates = await PianoModel.filter(
         manufacturer_id=manufacturer_id,
         kind=kind_val,
-        size_cm__gte=min_size, # >= min
-        size_cm__lte=max_size  # <= max
-    ).values("name", "size_cm", "notes") # On ne récupère que ces champs (léger)
+        size_cm__gte=min_size, 
+        size_cm__lte=max_size,
+        status=0 # Supposons que 0 = Actif/Validé (à adapter selon ta logique)
+    ).values("name", "size_cm", "notes", "normalized_name")
 
-    # candidates est déjà une liste de dicts grâce à .values()
     return candidates

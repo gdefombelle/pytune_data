@@ -62,7 +62,20 @@ class UserTypeEnum(IntEnum):
 class PianoCategoryEnum(IntEnum):
     GRAND = 1
     UPRIGHT = 2
-    # Ajouter d'autres types si nécessaire
+
+    @property
+    def label_en(self) -> str:
+        return {
+            PianoCategoryEnum.GRAND: "Grand piano",
+            PianoCategoryEnum.UPRIGHT: "Upright piano",
+        }[self]
+
+    @property
+    def label_fr(self) -> str:
+        return {
+            PianoCategoryEnum.GRAND: "Piano à queue",
+            PianoCategoryEnum.UPRIGHT: "Piano droit",
+        }[self]
 
 class DiagnosisSessionStatus(IntEnum):
     CREATED = 0        # juste créée, pas encore démarrée
