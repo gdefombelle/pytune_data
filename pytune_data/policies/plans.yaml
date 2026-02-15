@@ -38,23 +38,60 @@ plans:
       value_estimation: true
       priority_support: true
 
+  # ─────────────────────────────────────────
+  # PROFESSIONALS
+  # ─────────────────────────────────────────
+
+  pro_starter:
+    label: Pro Starter
+    role: professional
+    price: free
+    quotas:
+      pianos: 3
+      clients: 0
+      received_leads_per_month: 0
+    features:
+      ai_identification: true
+      pytuner: true
+      dashboard_basic: true
+      branded_reports: false
+      receive_free_diagnostics: false
+      publish_articles: false
+    ui:
+      badge: starter
+
   pro:
     label: Pro
     role: professional
+    price:
+      monthly: 9.90
+      yearly: 99
     quotas:
       pianos: unlimited
       clients: unlimited
+      received_leads_per_month: unlimited
     features:
+      ai_identification: true
+      pytuner: true
       branded_reports: true
       dashboard: true
       receive_free_diagnostics: true
+      publish_articles: true
 
   pro_plus:
     label: Pro+
     role: professional
+    price:
+      monthly: 19
     features:
       white_label: true
       team_access: true
+      advanced_analytics: true
+      regional_visibility_boost: true
+
+  # ─────────────────────────────────────────
+  # COMMUNITY / PARTNERS
+  # ─────────────────────────────────────────
 
   community:
     label: Faith & Harmony

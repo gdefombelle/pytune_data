@@ -448,9 +448,17 @@ async def get_similar_models(
     candidates = await PianoModel.filter(
         manufacturer_id=manufacturer_id,
         kind=kind_val,
-        size_cm__gte=min_size, 
+        size_cm__gte=min_size,
         size_cm__lte=max_size,
-        status=0 # Supposons que 0 = Actif/Validé (à adapter selon ta logique)
-    ).values("name", "size_cm", "notes", "normalized_name")
+        status=0
+    ).values(
+        "id",                # ← AJOUT ICI
+        "name",
+        "size_cm",
+        "notes",
+        "normalized_name",
+        "kind",              # ← utile aussi
+        "piano_type_id",
+    )
 
     return candidates

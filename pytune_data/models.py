@@ -1,6 +1,7 @@
 
 from datetime import datetime
 from uuid import uuid4
+import uuid
 from tortoise import fields, models
 from tortoise.models import Model
 from tortoise.contrib.fastapi import register_tortoise
@@ -679,36 +680,155 @@ class Conversation(Model):
 
 class PianoIdentificationSession(Model):
     id = fields.UUIDField(pk=True, default=uuid4)
-    
+
+    # Pro qui fait l’identification
     user = fields.ForeignKeyField(
         "models.User",
         related_name="guess_sessions",
         null=True,
         on_delete=fields.SET_NULL
     )
-    conversation = fields.ForeignKeyField(
-        "models.Conversation",         # nom  du modèle
-        related_name="piano_sessions", # inverse FK 
-        null=True,                     # ✅ rend la FK optionnelle
-        on_delete=fields.SET_NULL      # ✅ comportement doux
+
+    # 🆕 Client final (peut devenir user PyTune plus tard)
+    client_user = fields.ForeignKeyField(
+        "models.User",
+        related_name="client_piano_sessions",
+        null=True,
+        on_delete=fields.SET_NULL
     )
 
+    conversation = fields.ForeignKeyField(
+        "models.Conversation",
+        related_name="piano_sessions",
+        null=True,
+        on_delete=fields.SET_NULL
+    )
 
-    image_urls = fields.JSONField(null=True)         # List[str]
-    photo_metadata = fields.JSONField(default=list) 
-    photo_labels = fields.JSONField(null=True)       # Dict[str, str]
-    context_snapshot = fields.JSONField(null=True)   # dict
-    model_hypothesis = fields.JSONField(null=True)   # dict
-    metadata = fields.JSONField(null=True)   # dict
+    image_urls = fields.JSONField(null=True)
+    photo_metadata = fields.JSONField(default=list)
+    photo_labels = fields.JSONField(null=True)
+    context_snapshot = fields.JSONField(null=True)
+    model_hypothesis = fields.JSONField(null=True)
+    metadata = fields.JSONField(null=True)
+
+    # 🆕 Infos client (fallback si pas encore user)
+    client_email = fields.CharField(max_length=255, null=True)
+    client_name = fields.CharField(max_length=255, null=True)
+    client_phone = fields.CharField(max_length=32, null=True)
+
     report_url = fields.TextField(null=True)
     music_sources = fields.JSONField(null=True)
-    
-    extra_data = fields.JSONField(null=True)      # dict (JSONB)
+    extra_data = fields.JSONField(null=True)
+    identification_result = fields.JSONField(null=True)
+
+    # sharing
+    share_token = fields.TextField(null=True)
+    shared_at = fields.DatetimeField(auto_now_add=True, timezone=True)
     created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
 
     class Meta:
         table = "piano_identification_sessions"
 
     def __str__(self):
-        return f"PianoGuessSession(id={self.id})"
+        return f"PianoIdentificationSession(id={self.id})"
+    
 
+
+class WaitlistEntry(models.Model):
+    id = fields.UUIDField(pk=True)
+    email = fields.CharField(max_length=320)
+    plan_code = fields.CharField(max_length=64)
+    source = fields.CharField(max_length=64, null=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "waitlist"
+        unique_together = (("email", "plan_code"),)
+
+class CommunityRequestEntry(models.Model):
+    id = fields.UUIDField(pk=True)
+
+    # ───────── CONTACT ─────────
+    name = fields.CharField(max_length=255)
+    email = fields.CharField(max_length=320)
+    phone = fields.CharField(max_length=32, null=True)
+
+    # ───────── ORGANIZATION ─────────
+    organization = fields.CharField(max_length=255)
+    org_type = fields.CharField(max_length=64, null=True)
+
+    website = fields.CharField(max_length=255, null=True)
+
+    number_of_locations = fields.IntField(null=True)
+    number_of_pianos = fields.IntField(null=True)
+    number_of_musicians = fields.IntField(null=True)
+
+    # ───────── LOCATION ─────────
+    country = fields.CharField(max_length=100, null=True)
+
+    address = fields.JSONField(null=True)
+
+    # ───────── RELATIONAL / STRATEGIC DATA ─────────
+    partnership_interest = fields.JSONField(null=True)
+    social_links = fields.JSONField(null=True)
+
+    # ───────── FLEXIBLE EXTRA DATA ─────────
+    extra = fields.JSONField(null=True)
+
+    # ───────── META ─────────
+    message = fields.TextField(null=True)
+    lang = fields.CharField(max_length=5, default="en")
+    source = fields.CharField(max_length=64, null=True)
+
+    created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        table = "community_requests"
+        indexes = [
+            ("email",),
+            ("country",),
+            ("created_at",),
+            ("org_type",),
+        ]
+
+class EnterpriseRequestEntry(models.Model):
+    id = fields.UUIDField(pk=True, default=uuid.uuid4)
+
+    # ───────── CONTACT ─────────
+    name = fields.CharField(max_length=255)
+    email = fields.CharField(max_length=320)
+    phone = fields.CharField(max_length=32, null=True)
+
+    # ───────── ORGANIZATION ─────────
+    organization = fields.CharField(max_length=255)
+    org_type = fields.CharField(max_length=64, null=True)
+    website = fields.CharField(max_length=255, null=True)
+
+    number_of_locations = fields.IntField(null=True)
+    number_of_pianos = fields.IntField(null=True)
+    team_size = fields.IntField(null=True)
+
+    api_interest = fields.CharField(max_length=16, null=True)
+
+    # ───────── LOCATION ─────────
+    country = fields.CharField(max_length=100, null=True)
+    address = fields.JSONField(null=True)
+
+    # ───────── META ─────────
+    message = fields.TextField(null=True)
+    lang = fields.CharField(max_length=5, default="en")
+
+    source = fields.CharField(max_length=64, null=True)
+
+    # 🔥 IMPORTANT — timezone aware
+    created_at = fields.DatetimeField(auto_now_add=True)
+    updated_at = fields.DatetimeField(auto_now=True)
+
+    class Meta:
+        table = "enterprise_requests"
+        indexes = [
+            ("email",),
+            ("organization",),
+            ("created_at",),
+            ("org_type",),
+        ]

@@ -117,12 +117,12 @@ class UserPianoModelCreate(BaseModel):
     pianomodel_id: Optional[int]
     manufacturer_id: Optional[int]
     name: Optional[str]
-    location: Optional[str]
-    serial_number: Optional[str]
-    manufacture_year: Optional[int]
-    purchase_year: Optional[int]
-    notes: Optional[str]
-    model_name: Optional[str]
+    location: Optional[str] = None
+    serial_number: Optional[str] = None
+    manufacture_year: Optional[int] = None
+    purchase_year: Optional[int] = None
+    notes: Optional[str] = None
+    model_name: Optional[str] = None
     kind: Optional[str]
     type_label: Optional[str]
     size_cm: Optional[float]
@@ -440,3 +440,66 @@ class PianoIdentificationSessionRead(BaseModel):
 
     class Config:
         from_attributes = True  # compatibilité avec Tortoise ORM
+
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional, Dict, Any
+
+
+class CommunityRequest(BaseModel):
+
+    # ───────── CONTACT ─────────
+    name: str = Field(..., max_length=255)
+    email: EmailStr
+    phone: Optional[str] = Field(None, max_length=32)
+
+    # ───────── ORGANIZATION ─────────
+    organization: str = Field(..., max_length=255)
+    org_type: Optional[str] = Field(None, max_length=64)
+
+    website: Optional[str] = Field(None, max_length=255)
+
+    number_of_locations: Optional[int] = None
+    number_of_pianos: Optional[int] = None
+    number_of_musicians: Optional[int] = None
+
+    # ───────── LOCATION ─────────
+    country: Optional[str] = Field(None, max_length=100)
+    address: Optional[Dict[str, Any]] = None
+
+    # ───────── RELATIONAL ─────────
+    partnership_interest: Optional[Dict[str, Any]] = None
+    social_links: Optional[Dict[str, Any]] = None
+
+    # ───────── FLEXIBLE ─────────
+    extra: Optional[Dict[str, Any]] = None
+
+    # ───────── META ─────────
+    message: Optional[str] = None
+    lang: Optional[str] = Field(default="en", max_length=5)
+    source: Optional[str] = Field(None, max_length=64)
+
+class EnterpriseRequest(BaseModel):
+
+    # CONTACT
+    name: str = Field(..., max_length=255)
+    email: EmailStr
+    phone: Optional[str] = Field(None, max_length=32)
+
+    # ORGANIZATION
+    organization: str = Field(..., max_length=255)
+    org_type: Optional[str] = Field(None, max_length=64)
+    website: Optional[str] = Field(None, max_length=255)
+
+    number_of_locations: Optional[int] = None
+    number_of_pianos: Optional[int] = None
+    team_size: Optional[int] = None
+    api_interest: Optional[str] = Field(None, max_length=16)
+
+    # LOCATION
+    country: Optional[str] = Field(None, max_length=100)
+    address: Optional[Dict[str, Any]] = None
+
+    # META
+    message: Optional[str] = None
+    lang: Optional[str] = Field(default="en", max_length=5)
+    source: Optional[str] = Field(None, max_length=64)
