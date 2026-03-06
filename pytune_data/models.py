@@ -677,7 +677,7 @@ class Conversation(Model):
 
     def __str__(self):
         return f"Conversation(id={self.id}, topic={self.topic})"
-
+    
 class PianoIdentificationSession(Model):
     id = fields.UUIDField(pk=True, default=uuid4)
 
@@ -689,7 +689,7 @@ class PianoIdentificationSession(Model):
         on_delete=fields.SET_NULL
     )
 
-    # 🆕 Client final (peut devenir user PyTune plus tard)
+    # 🆕 Client final
     client_user = fields.ForeignKeyField(
         "models.User",
         related_name="client_piano_sessions",
@@ -711,19 +711,47 @@ class PianoIdentificationSession(Model):
     model_hypothesis = fields.JSONField(null=True)
     metadata = fields.JSONField(null=True)
 
-    # 🆕 Infos client (fallback si pas encore user)
+    # ─────────────────────────
+    # Client Infos
+    # ─────────────────────────
     client_email = fields.CharField(max_length=255, null=True)
     client_name = fields.CharField(max_length=255, null=True)
     client_phone = fields.CharField(max_length=32, null=True)
 
+    # ─────────────────────────
+    # Identification
+    # ─────────────────────────
+    identification_result = fields.JSONField(null=True)
+
+    # ─────────────────────────
+    # 💰 VALUATION (NOUVEAU)
+    # ─────────────────────────
+    valuation_result = fields.JSONField(null=True)
+
+    valuation_status = fields.CharField(
+        max_length=32,
+        null=True
+        # "pending" | "completed" | "rejected"
+    )
+
+    valuation_run_at = fields.DatetimeField(null=True)
+    valuation_requested_at = fields.DatetimeField(null=True)
+
+    # Pour futur usage avancé
+    valuation_version = fields.IntField(null=True)
+    valuation_context = fields.JSONField(null=True)
+    # ex: market_country, sale_context, pro_notes snapshot
+
+    # ─────────────────────────
+    # Reporting / Sharing
+    # ─────────────────────────
     report_url = fields.TextField(null=True)
     music_sources = fields.JSONField(null=True)
     extra_data = fields.JSONField(null=True)
-    identification_result = fields.JSONField(null=True)
 
-    # sharing
     share_token = fields.TextField(null=True)
     shared_at = fields.DatetimeField(auto_now_add=True, timezone=True)
+
     created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
 
     class Meta:
@@ -731,8 +759,6 @@ class PianoIdentificationSession(Model):
 
     def __str__(self):
         return f"PianoIdentificationSession(id={self.id})"
-    
-
 
 class WaitlistEntry(models.Model):
     id = fields.UUIDField(pk=True)
@@ -832,3 +858,71 @@ class EnterpriseRequestEntry(models.Model):
             ("created_at",),
             ("org_type",),
         ]
+
+
+class ListingType:
+    PROFESSIONAL = 1
+    PRIVATE = 2
+    
+class ForSaleListing(Model):
+    """
+    Marketplace – For Sale Listings
+    Aucune modification des autres tables.
+    Pas de FK physiques, seulement IDs.
+    """
+
+    id = fields.UUIDField(pk=True, default=uuid.uuid4)
+
+    # Références logiques (pas de FK DB)
+    pianomodel_user_id = fields.IntField()
+    seller_user_id = fields.IntField()
+
+    # 1 = professional, 2 = private
+    listing_type = fields.IntField()
+
+    # Prix
+    price = fields.DecimalField(max_digits=12, decimal_places=2)
+    currency = fields.CharField(max_length=10, default="EUR")
+
+    # Lifecycle
+    # 0 = draft
+    # 1 = active
+    # -1 = archived
+    # -2 = expired (auto)
+    # -3 = closed (vendu / retiré)
+    status = fields.IntField(default=1)
+
+    expires_at = fields.DatetimeField(null=True)
+    closed_at = fields.DatetimeField(null=True)
+
+    # Raison business de fermeture
+    closing_reason = fields.CharField(max_length=50, null=True)
+    closing_note = fields.TextField(null=True)
+
+    # Texte visible par les acheteurs
+    title = fields.CharField(max_length=255, null=True)
+    description = fields.TextField(null=True)
+
+    created_at = fields.DatetimeField(auto_now_add=True, timezone=True)
+    updated_at = fields.DatetimeField(auto_now=True, timezone=True)
+    view_count = fields.IntField(default=0)
+    last_viewed_at = fields.DatetimeField(null=True)
+    published_at = fields.DatetimeField(null=True)
+    reactivated_at = fields.DatetimeField(null=True)
+    city = fields.CharField(max_length=128, null=True)
+    listing_content = fields.JSONField(null=True)
+    cover_photo = fields.CharField(max_length=500, null=True)
+    lat = fields.DecimalField(max_digits=9, decimal_places=6, null=True)
+    lng = fields.DecimalField(max_digits=9, decimal_places=6, null=True)
+
+    class Meta:
+        table = "for_sale_listings"
+        indexes = [
+            ("status",),
+            ("expires_at",),
+            ("seller_user_id",),
+            ("pianomodel_user_id",),
+        ]
+
+    def __str__(self):
+        return f"ForSaleListing(id={self.id}, piano={self.pianomodel_user_id})"

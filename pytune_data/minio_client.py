@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from minio import Minio
 from pytune_configuration.sync_config_singleton import config, SimpleConfig
 import os
@@ -35,6 +37,28 @@ class MinioClient:
     def ensure_bucket_exists(self):
         if not self.client.bucket_exists(TEMP_BUCKET_NAME):
             self.client.make_bucket(TEMP_BUCKET_NAME)
+    
+    def get_bytes_from_url(self, url: str) -> bytes:
+        """
+        Retrieve object bytes from a MinIO URL using the SDK
+        (works in dev and prod).
+        """
+        parsed = urlparse(url)
+        path = parsed.path.lstrip("/")
+
+        if "/" not in path:
+            raise ValueError("Invalid MinIO URL format")
+
+        bucket, object_name = path.split("/", 1)
+
+        obj = self.client.get_object(bucket, object_name)
+        try:
+            data = obj.read()
+        finally:
+            obj.close()
+            obj.release_conn()
+
+        return data
 
 
 minio_client = MinioClient()
