@@ -863,6 +863,13 @@ class EnterpriseRequestEntry(models.Model):
 class ListingType:
     PROFESSIONAL = 1
     PRIVATE = 2
+
+class LeadStatus:
+    NEW = "new"
+    NOTIFIED = "notified"
+    SELLER_REPLIED = "seller_replied"
+    BUYER_REPLIED = "buyer_replied"
+    CLOSED = "closed"
     
 class ForSaleListing(Model):
     """
@@ -910,6 +917,7 @@ class ForSaleListing(Model):
     published_at = fields.DatetimeField(null=True)
     reactivated_at = fields.DatetimeField(null=True)
     city = fields.CharField(max_length=128, null=True)
+    country = fields.CharField(max_length=80, null=True)
     listing_content = fields.JSONField(null=True)
     cover_photo = fields.CharField(max_length=500, null=True)
     lat = fields.DecimalField(max_digits=9, decimal_places=6, null=True)
@@ -926,3 +934,102 @@ class ForSaleListing(Model):
 
     def __str__(self):
         return f"ForSaleListing(id={self.id}, piano={self.pianomodel_user_id})"
+    
+class MarketplaceLead(Model):
+
+    id = fields.UUIDField(
+        pk=True,
+        default=uuid.uuid4
+    )
+
+    listing = fields.ForeignKeyField(
+        "models.ForSaleListing",
+        related_name="leads",
+        on_delete=fields.CASCADE
+    )
+
+    seller_user = fields.ForeignKeyField(
+        "models.User",
+        related_name="received_leads"
+    )
+
+    buyer_user = fields.ForeignKeyField(
+        "models.User",
+        related_name="sent_leads",
+        null=True
+    )
+
+    buyer_name = fields.CharField(
+        max_length=255,
+        null=True
+    )
+
+    buyer_email = fields.CharField(
+        max_length=255
+    )
+
+    message = fields.TextField(
+        null=True
+    )
+
+    status = fields.CharField(
+        max_length=32,
+        default="new"
+    )
+
+    source = fields.CharField(
+        max_length=32,
+        null=True
+    )
+
+    ip_address = fields.CharField(
+        max_length=64,
+        null=True
+    )
+
+    user_agent = fields.CharField(
+        max_length=512,
+        null=True
+    )
+
+    # lifecycle timestamps
+
+    first_contact_at = fields.DatetimeField(
+        auto_now_add=True
+    )
+
+    seller_notified_at = fields.DatetimeField(
+        null=True
+    )
+
+    seller_replied_at = fields.DatetimeField(
+        null=True
+    )
+
+    buyer_replied_at = fields.DatetimeField(
+        null=True
+    )
+
+    closed_at = fields.DatetimeField(
+        null=True
+    )
+
+    created_at = fields.DatetimeField(
+        auto_now_add=True
+    )
+
+    updated_at = fields.DatetimeField(
+        auto_now=True
+    )
+
+    last_activity_at = fields.DatetimeField(null=True)
+
+    class Meta:
+        table = "marketplace_leads"
+
+        indexes = (
+            ("listing_id",),
+            ("seller_user_id",),
+            ("buyer_email",),
+            ("created_at",),
+        )
