@@ -58,6 +58,8 @@ class UserTypeEnum(IntEnum):
     UNDEFINED = -1
     INDIVIDUAL = 0
     PROFESSIONNAL = 1
+    SCHOOLS = 2
+    COMMUNITY = 3
     ADMIN = 99
 
 class PianoCategoryEnum(IntEnum):
@@ -879,8 +881,7 @@ class ForSaleListing(Model):
     """
 
     id = fields.UUIDField(pk=True, default=uuid.uuid4)
-
-    # Références logiques (pas de FK DB)
+        # Références logiques (pas de FK DB)
     pianomodel_user_id = fields.IntField()
     seller_user_id = fields.IntField()
 
@@ -934,7 +935,6 @@ class ForSaleListing(Model):
 
     def __str__(self):
         return f"ForSaleListing(id={self.id}, piano={self.pianomodel_user_id})"
-    
 class MarketplaceLead(Model):
 
     id = fields.UUIDField(
@@ -957,6 +957,13 @@ class MarketplaceLead(Model):
         "models.User",
         related_name="sent_leads",
         null=True
+    )
+
+    contact = fields.ForeignKeyField(
+        "models.Contact",
+        related_name="marketplace_leads",
+        null=True,
+        on_delete=fields.SET_NULL
     )
 
     buyer_name = fields.CharField(
@@ -992,8 +999,6 @@ class MarketplaceLead(Model):
         null=True
     )
 
-    # lifecycle timestamps
-
     first_contact_at = fields.DatetimeField(
         auto_now_add=True
     )
@@ -1022,14 +1027,93 @@ class MarketplaceLead(Model):
         auto_now=True
     )
 
-    last_activity_at = fields.DatetimeField(null=True)
+    last_activity_at = fields.DatetimeField(
+        null=True
+    )
 
     class Meta:
         table = "marketplace_leads"
-
         indexes = (
             ("listing_id",),
             ("seller_user_id",),
             ("buyer_email",),
+            ("contact_id",),
             ("created_at",),
         )
+
+    def __str__(self):
+        return f"MarketplaceLead(id={self.id}, buyer_email={self.buyer_email})"
+
+class Contact(Model):
+
+    id = fields.UUIDField(
+        pk=True,
+        default=uuid.uuid4
+    )
+
+    owner_user = fields.ForeignKeyField(
+        "models.User",
+        related_name="contacts",
+        on_delete=fields.CASCADE
+    )
+
+    name = fields.CharField(
+        max_length=255,
+        null=True
+    )
+
+    email = fields.CharField(
+        max_length=255,
+        null=True
+    )
+
+    phone = fields.CharField(
+        max_length=64,
+        null=True
+    )
+
+    city = fields.CharField(
+        max_length=255,
+        null=True
+    )
+
+    country = fields.CharField(
+        max_length=255,
+        null=True
+    )
+
+    notes = fields.TextField(
+        null=True
+    )
+
+    extra = fields.JSONField(
+        null=True
+    )
+
+    last_contact_at = fields.DatetimeField(
+        null=True
+    )
+
+    created_at = fields.DatetimeField(
+        auto_now_add=True
+    )
+
+    updated_at = fields.DatetimeField(
+        auto_now=True
+    )
+
+    class Meta:
+        table = "contacts"
+        indexes = (
+            ("owner_user_id",),
+            ("email",),
+            ("last_contact_at",),
+            ("owner_user_id", "email"),
+        )
+
+    def __str__(self):
+        if self.name:
+            return f"Contact(id={self.id}, name={self.name})"
+        if self.email:
+            return f"Contact(id={self.id}, email={self.email})"
+        return f"Contact(id={self.id})"
